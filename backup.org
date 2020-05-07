@@ -1,0 +1,192 @@
+* HOWTO backup
+
+** Overview
+
+Putting together the bits and pieces of a backup and restore concept,
+while not being rocket science, can be unnerving. After installing a new NetBSD-System,
+I'vw been trying to set up such a concept---suggestions on
+how to improve are always welcome.
+
+** Some thoughts about Strategy
+
+The first thing you probably see when reading about these topics is
+the advice, don't have a backup strategy but a recovery strategy. That
+is, make sure your backups are actually in a usable shape and
+be sure you know how to apply them in an emergency. Depending on how
+much you value your data, you might want to store the backup media in
+a physically remote place. At least, you should not store it on the
+same disks to be backed up, but on detachable media or on a remote
+computer. Also it should be set read-only after the backup is
+finished, so it cannot accidently be damaged when accessing it.
+
+The next question is how much time and space you want to donate to
+your backups. The easiest way probably is to do a full backup each
+time. Then recovery is easy: just apply the latest backup. The flip
+side is, each backup might take a long time and much storage. So the
+other extreme might be to only start with one full backup, then always
+backup only the increments to the previous backup. Then, of course,
+the restore is expensive as you need to apply each single backup from
+first to last in right order to do a full restore. Tools like
+[[http://bla][rsync(1)] mitigate by merging each increment into the
+previous backup, managing a copy of the backed up file system. But
+this collides with the requirement of not modifying previous backups.
+
+As a compromise, the dump(1) manpage suggests making the next
+increment only every second time---that is, to generate the diff to
+the same preceeding backup for the following two consecutive backups.
+Besides that, it suggests generating weekly backups incrementing on
+the original full backup. Finally, it suggests to build a new full
+backup every four weeks, maintaining a three-level-strategy. This way,
+in the worst case, restoring the backup of a cycle's last day, you
+need to apply the initial full backup, the last weekly increment and
+the daily increments of the third, fifth and seventh day, so you need
+to apply at most five backups to do a full restore.
+
+dump(1) allows to define this using backup levels. Level 0 always is a
+full backup. Each higher level generates the diff to the last lower
+level's backup contents. So applying the dump levels ~0 3 2 5 4 7 6~
+for the first and ~1 3 2 5 4 7 6~ for the three following weeks
+follows the backup plan skeched out above. Now you can fine-tune this
+to your needs.
+
+Another plan would be to only backup personal data like your user
+directories. Then the restore plan would include a fresh OS
+setup, installing all software needed and then restoring the user
+directories.
+
+My plan is to setup a full backup using dump and restore.
+
+** Accessing a remote backup device
+
+When you don't have a backup tape, you probably instead should
+have an external backup medium ready. In the easiest case, that device
+may be attached directly to your computer, so you can adress it's
+device entry.
+
+When it is attached to another computer, there are several options.
+The easiest would be to use the remote option of ~dump~, which
+indirectly acesses it using ~ssh~ and ~rmt~, so both must be installed
+on the remote computer. Then you can set environment variable
+~RCMD_CMD~ to ~ssh~ and address you device by option ~-f
+user@host:file~.
+
+If ~rmt~ is not available, your next option would be to pipe to ~dd~
+using ~ssh~.
+#+BEGIN_SRC shell
+dump <options> | ssh -l <user> <host> dd of=/dev/<dump-device>
+#+END_SRC
+
+The pipe for the way back to restore then would be like this:
+#+BEGIN_SRC shell
+ssh -l <user> <host> dd if=/dev/<dump-device> | restore -f -
+#+END_SRC
+where =/dev/dump-device= might also be a path to a plain file. I've
+not yet tested how this piping performs when operating on really large
+dumps, especially if using the interactive restore facility to get
+back only selected files.
+
+In my case, the backup device is an Apple Time Capsule, being also a
+NetBSD-operated device. My first plan, using the remote backup
+facility of ~dump~, didn't work out because of the missing ~rmt~
+command on the time capsule. Perhaps some day I'll try to find a
+statically linked ~rmt~ binary for NetBSD-6.0/evbarm (or cross-build
+it myself). For now, I'm resolving to using ~mount_afp~, provided
+by pkgsrc, and mounting the time capsule filesystem to access it in a
+less sophisticated way.
+
+BTW, when doing so, I had to manually create a link to ~/dev/fuse0~
+(~ln -s /dev/putter /dev/fuse0~) to make ~afpfsd~ work.
+
+* 1st tries
+
+sudo mount_afp afp://:passwd@host/path /mnt
+
+sudo fssconfig -cv fss0 /var/ /var/backups/snapshot
+sudo mount -r /dev/fss0 /mnt/
+sudo dump -0ua -f /tmp/var.backup /mnt/
+sudo umount /mnt/
+sudo fssconfig -u fss0
+sudo rm /var/backups/snapshot 
+
+sudo afp_client unmount /mnt
+
+sudo fssconfig -l -- list fss in use
+sudo umount /mnt
+
+chflags nodump file-or-dir
+ls -o
+dump 0a -h 0 -f /tmp/backup.1 /home
+
+chflags nonodump file-or-dir
+
+** notes
+
+   - when a long dump is running, you can send a SIGSTATUS to the dump
+     process to make it report it's progress. For example, when the
+     status control character is mapped tp CTRL-T, a dump process
+     running in the foreground reports the progress state when
+     pressing that.
+
+   - dump from /dev/fss seems to work only indirectly by mounting to
+     /mnt
+   - when using fss snapshots, as the device name is written into
+     dumpdates, always consistently use the same different fss devices
+     when dumping. eg fss0 -> /, fss1 -> /var, fss2 -> /usr etc
+
+   - when restoring in wrong order, restore says 'Incremental tape too
+     high' or ..'too low'  and stops
+   - when restoring increments, restore makes sure to unlink the
+     restored file before replacing them
+
+   - restoring, start with (latest) level 0 dump, then work through
+     all newer dumps leaving out each one where a newer dump with lower
+     level exists.
+   - the dates can be extracted from output of =restore -t=.
+   - eg when dumps were generated with order 0 3 2 4, you'll find that
+     for level 3 dump a newer one with lower level exists (number 2),
+     so 3 is left out. The only one with lower level than 2 is the
+     older 0, so you choose 2. 4 has also only lower ones with older
+     dates, so 4 is also choosen, giving the restore order 0 2 4.
+
+   - doing an interactive restore via piped ssh seems to be
+     not such a good idea, especially if the backup file is large.
+
+** info
+
+dump -W
+
+** extract
+
+restore -i -- interactive
+restore -t -- list contents
+restore -x -- extract single files or directories -- creates no restoresymtable
+restore -r -- restore (rebuild file system) -- creates a restoresymtable
+restore -ru -- full restore, but unlink restored files - so restore
+               into an existing filesystem
+
+remote:
+cat /tmp/var.backup | restore -i -f -
+
+** questions:
+
+ - dump: address full filesystem by mount point (dont use subset?)
+ - and address one or more real subsets?
+ - create etc/dumpdates?
+ - full backup after restore?
+ - check dump file flags
+ - 
+
+* dump
+
+make sure time capsule is mounted..
+
+
+fssconfig -cx fss0 / /tmp/back
+
+sudo dump -0uan -f - /dev/fss0 | sudo ssh time-capsule dd of=/Volumes/dk2/ShareRoot/eridanus/dump0
+
+fssconfig -u fss0
+
+* restore
+
+ssh -c blowfish usr@otherhost dd bs=64k if=usr.dump.gz  | (cd /tmp/usr && gzcat | restore -ruf -)
