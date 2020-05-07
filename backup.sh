@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/pkg/bin/bash
 
 # comment to really do backups
 TEST=echo
