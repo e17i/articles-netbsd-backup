@@ -211,3 +211,7 @@ to automate daily backups by calling it via crontab, saving the output
 to a log and mailing it to root. Not as configurable and
 documented as it could be, it may at least serve as a simple example.
 #+INCLUDE: "backup.sh" src shell
+
+..and an example of a backup.conf showing how to dump/restore using
+ssh pipes:
+#+INCLUDE: "backup.conf" src shell
