@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-05-08 Fr. 19:55 -->
+<!-- 2020-05-08 Fr. 20:12 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Backup and Restore on NetBSD</title>
@@ -62,9 +62,9 @@ for the JavaScript code in this tag.
 <div id="content">
 <h1 class="title">Backup and Restore on NetBSD</h1>
 
-<div id="outline-container-orgc0f1a94" class="outline-2">
-<h2 id="orgc0f1a94">Overview</h2>
-<div class="outline-text-2" id="text-orgc0f1a94">
+<div id="outline-container-org41baa15" class="outline-2">
+<h2 id="org41baa15">Overview</h2>
+<div class="outline-text-2" id="text-org41baa15">
 <p>
 Putting together the bits and pieces of a backup and restore concept,
 while not being rocket science, always seems to be a little bit
@@ -77,9 +77,9 @@ Suggestions on how to improve are always welcome.
 </div>
 </div>
 
-<div id="outline-container-orgbf63062" class="outline-2">
-<h2 id="orgbf63062">Some thoughts about Strategy</h2>
-<div class="outline-text-2" id="text-orgbf63062">
+<div id="outline-container-orga8426e4" class="outline-2">
+<h2 id="orga8426e4">Some thoughts about Strategy</h2>
+<div class="outline-text-2" id="text-orga8426e4">
 <p>
 The first thing you probably see when reading about these topics is
 the advice, don't have a backup strategy but a recovery strategy. That
@@ -153,9 +153,9 @@ easing the backup process very much.
 </div>
 </div>
 
-<div id="outline-container-orga1fb443" class="outline-2">
-<h2 id="orga1fb443">Accessing a remote backup device</h2>
-<div class="outline-text-2" id="text-orga1fb443">
+<div id="outline-container-org3df876d" class="outline-2">
+<h2 id="org3df876d">Accessing a remote backup device</h2>
+<div class="outline-text-2" id="text-org3df876d">
 <p>
 When you don't have a backup tape device, you probably instead should
 have an external backup medium ready. In the easiest case, that device
@@ -213,9 +213,9 @@ BTW, when doing so, I had to manually create a link to <code>/dev/fuse0</code>
 </div>
 </div>
 
-<div id="outline-container-org6777f53" class="outline-2">
-<h2 id="org6777f53">1st tries</h2>
-<div class="outline-text-2" id="text-org6777f53">
+<div id="outline-container-org6feb12f" class="outline-2">
+<h2 id="org6feb12f">1st tries</h2>
+<div class="outline-text-2" id="text-org6feb12f">
 <div class="org-src-container">
 <pre class="src src-shell">sudo mount_afp afp://:passwd@host/path /mnt
 
@@ -239,9 +239,9 @@ chflags nonodump file-or-dir
 </div>
 </div>
 
-<div id="outline-container-org94c4218" class="outline-3">
-<h3 id="org94c4218">notes</h3>
-<div class="outline-text-3" id="text-org94c4218">
+<div id="outline-container-orge5baeff" class="outline-3">
+<h3 id="orge5baeff">notes</h3>
+<div class="outline-text-3" id="text-orge5baeff">
 <ul class="org-ul">
 <li>when a long dump is running, you can send a SIGSTATUS to the dump
 process to make it report it's progress. For example, when the
@@ -273,18 +273,18 @@ dates, so 4 is also choosen, giving the restore order 0 2 4.</li>
 </div>
 </div>
 
-<div id="outline-container-orgec25751" class="outline-3">
-<h3 id="orgec25751">info</h3>
-<div class="outline-text-3" id="text-orgec25751">
+<div id="outline-container-org7b58a3f" class="outline-3">
+<h3 id="org7b58a3f">info</h3>
+<div class="outline-text-3" id="text-org7b58a3f">
 <p>
 dump -W
 </p>
 </div>
 </div>
 
-<div id="outline-container-org2ca7177" class="outline-3">
-<h3 id="org2ca7177">extract</h3>
-<div class="outline-text-3" id="text-org2ca7177">
+<div id="outline-container-org9f0b94b" class="outline-3">
+<h3 id="org9f0b94b">extract</h3>
+<div class="outline-text-3" id="text-org9f0b94b">
 <div class="org-src-container">
 <pre class="src src-shell">restore -i -- interactive
 restore -t -- list contents
@@ -305,9 +305,9 @@ remote:
 </div>
 </div>
 
-<div id="outline-container-orgbfcfe35" class="outline-3">
-<h3 id="orgbfcfe35">questions:</h3>
-<div class="outline-text-3" id="text-orgbfcfe35">
+<div id="outline-container-org580e985" class="outline-3">
+<h3 id="org580e985">questions:</h3>
+<div class="outline-text-3" id="text-org580e985">
 <ul class="org-ul">
 <li>dump: address full filesystem by mount point (dont use subset?)</li>
 <li>and address one or more real subsets?</li>
@@ -320,9 +320,9 @@ remote:
 </div>
 </div>
 
-<div id="outline-container-org0e5e3f5" class="outline-2">
-<h2 id="org0e5e3f5">putting it together</h2>
-<div class="outline-text-2" id="text-org0e5e3f5">
+<div id="outline-container-org89851e4" class="outline-2">
+<h2 id="org89851e4">putting it together</h2>
+<div class="outline-text-2" id="text-org89851e4">
 <p>
 Finally, my <code>bin/backup.sh</code>. When sourced, provides some commands
 supporting in handling snapshots, mounting of the backup device,
@@ -483,6 +483,44 @@ documented as it could be, it may at least serve as a simple example.
   restorecmd ${<span style="color: #a0522d;">ARGS</span>} -f ${<span style="color: #a0522d;">BACKUPFILE</span>}${<span style="color: #a0522d;">BOUT</span>}
   backup_dev unmount
 }
+</pre>
+</div>
+
+<p>
+..and an example of a backup.conf showing how to dump/restore using
+ssh pipes:
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #b22222;"># </span><span style="color: #b22222;">comment to really do backups</span>
+<span style="color: #a0522d;">TEST</span>=echo
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">define this when dump device must be mounted</span>
+<span style="color: #a0522d;">DUMPDEV</span>=afp://:${<span style="color: #a0522d;">DUMPDEVPWD</span>}@timecapsule/
+<span style="color: #a0522d;">DUMPMNT</span>=/mnt/bkup
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">unset if you dont want a snapshot</span>
+<span style="color: #a0522d;">FSS</span>=fss0
+<span style="color: #a0522d;">SRCDEV</span>=/
+<span style="color: #a0522d;">SNAPSHOT</span>=/root/snapshot
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">mountpoint of fs to backup</span>
+<span style="color: #a0522d;">SRCMNT</span>=/mnt/dev
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">backup device or file</span>
+<span style="color: #a0522d;">BACKUP</span>=${<span style="color: #a0522d;">DUMPMNT</span>}/client/dump
+<span style="color: #b22222;">#</span><span style="color: #b22222;">BACKUP=</span>
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">backup levels for each day of month</span>
+<span style="color: #a0522d;">LEVELS</span>=(- 0 3 2 5 4 7 6 1 3 2 5 4 7 6 1 3 2 5 4 7 6 1 3 2 5 4 7 6 1 3 2)
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">uncomment this to define custom commands</span>
+<span style="color: #b22222;">#</span><span style="color: #b22222;">dumpcmd() {</span>
+<span style="color: #b22222;">#  </span><span style="color: #b22222;">dump $* #| ssh timecapsule dd of=/Volumes/dk2/ShareRoot/client/dump.${LEV}</span>
+<span style="color: #b22222;">#</span><span style="color: #b22222;">}</span>
+
+<span style="color: #b22222;">#</span><span style="color: #b22222;">restorecmd() {</span>
+<span style="color: #b22222;">#  </span><span style="color: #b22222;">ssh timecapsule dd if=/Volumes/dk2/ShareRoot/client/dump.${LEV} | ${TEST} restore $*</span>
+<span style="color: #b22222;">#</span><span style="color: #b22222;">}</span>
 </pre>
 </div>
 </div>
