@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2020-05-08 Fr. 19:55 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Backup and Restore on NetBSD</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="Jörg Kollmann" />
+<link rel="stylesheet" type="text/css" href="chrome/rethink.css" />
+<img src="image1.jpg" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Backup and Restore on NetBSD</h1>
+
+<div id="outline-container-orgc0f1a94" class="outline-2">
+<h2 id="orgc0f1a94">Overview</h2>
+<div class="outline-text-2" id="text-orgc0f1a94">
+<p>
+Putting together the bits and pieces of a backup and restore concept,
+while not being rocket science, always seems to be a little bit
+ungrateful. Most Admin Handbooks handle this topic only within few
+pages. After replacing my old Mac Mini's OS by NetBSD, I tried to
+implement an automated backup, allowing me to handle it similar to
+the time machine backups I've been using before.
+Suggestions on how to improve are always welcome.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgbf63062" class="outline-2">
+<h2 id="orgbf63062">Some thoughts about Strategy</h2>
+<div class="outline-text-2" id="text-orgbf63062">
+<p>
+The first thing you probably see when reading about these topics is
+the advice, don't have a backup strategy but a recovery strategy. That
+is, make sure your backups are actually in a usable shape and
+be sure you know how to apply them in an emergency. Depending on how
+much you value your data, you might want to store the backup media in
+a physically remote place. At least, you should not store it on the
+same disks to be backed up, but on detachable media or on a remote
+computer. Also it should be set read-only after the backup is
+finished, so it cannot accidently be damaged when accessing it.
+</p>
+
+<p>
+The next question is how much time and space you want to donate to
+your backups. The easiest way probably is to do a full backup each
+time. Then recovery is easy: just apply the latest backup. The flip
+side is, each backup might take a long time and much storage space. So the
+other extreme might be to only start with one full backup, afterwards always
+backup only the increments to the previous backup. Then, of course,
+the restore is expensive as you need to apply each single backup from
+first to last in right order to do a full restore. Tools like
+<a href="https://netbsd.gw.com/cgi-bin/man-cgi?rsync">rsync(1)</a> mitigate by merging each increment into the
+previous backup, managing a copy of the backed up file system. But
+this collides with the requirement of not modifying previous backups.
+</p>
+
+<p>
+As a compromise, the <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump">dump(8)</a> manpage suggests to do the next
+increment only every second time&#x2014;that is, to generate the diff to
+the same preceeding backup for the following two consecutive backups.
+Besides that, it suggests generating weekly backups incrementing on
+the original full backup. Finally, it suggests to build a new full
+backup every four weeks, maintaining a three-level strategy. This way,
+in the worst case, restoring the backup of a cycle's last day, you
+need to apply the initial full backup, the last weekly increment and
+the daily increments of the third, fifth and seventh day, so you need
+to apply at most five backups to do a full restore.
+</p>
+
+<p>
+<a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump">dump(8)</a> allows to define this using backup levels. Level 0 always is a
+full backup. Each higher level generates the diff to the last lower
+level's backup contents. So applying the dump levels <code>0 3 2 5 4 7 6</code>
+for the first and <code>1 3 2 5 4 7 6</code> for the three following weeks
+follows the backup plan skeched out above. Of course, you may always
+fine-tune this to your needs.
+</p>
+
+<p>
+Another plan would be to only backup personal data like your user
+directories. Then the restore plan would include a fresh OS
+setup, installing all software needed and then fetching only the user
+directories from backup. This doesn't guarantee you get to the same
+state as before, as you probably haven't tagged the exact versions of
+all software installed before.
+</p>
+
+<p>
+As I want to be able to go back also after experimental software
+updates, my plan is to setup a full backup using
+<a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump">dump(8)</a> and <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore">restore(8)</a>.
+</p>
+
+<p>
+One downside of using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump">dump(8)</a> is, it cannot reliably take backups from
+live file systems. That used to imply going down to single user and
+umounting the files systems for each backup. Fortunately, NetBSD has a
+nice support for file system snapshots courtesy of <a href="https://netbsd.gw.com/cgi-bin/man-cgi?fssconfig">fssconfig(8)</a>,
+easing the backup process very much.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga1fb443" class="outline-2">
+<h2 id="orga1fb443">Accessing a remote backup device</h2>
+<div class="outline-text-2" id="text-orga1fb443">
+<p>
+When you don't have a backup tape device, you probably instead should
+have an external backup medium ready. In the easiest case, that device
+may be attached directly to your computer, so you can adress it's
+device entry directly.
+</p>
+
+<p>
+When it is attached to another computer, there are several options.
+The first one would be to use the remote option of <code>dump</code>, which
+indirectly acesses the remote computer using <code>ssh</code> and <code>rmt</code>, so both must be installed
+and accessable there. Then you can set environment variable
+<code>RCMD_CMD</code> to <code>ssh</code> and address you device by option <code>-f
+user@host:file</code>.
+</p>
+
+<p>
+If <code>ssh</code> access or <code>rmt</code> is not available, your next option would be to pipe to <code>dd</code>
+using <code>ssh</code>.
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">dump &lt;options&gt; | ssh -l &lt;user&gt; &lt;host&gt; dd <span style="color: #a0522d;">of</span>=/dev/&lt;dump-device&gt;
+</pre>
+</div>
+
+<p>
+The pipe for the way back to restore then would be like this:
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">ssh -l &lt;user&gt; &lt;host&gt; dd <span style="color: #a0522d;">if</span>=/dev/&lt;dump-device&gt; | restore -f -
+</pre>
+</div>
+<p>
+where <code>/dev/dump-device</code> might also be a path to a plain file. 
+Unfortunately, doing an interactive restore via this sort of piped ssh
+seems to be not such a good idea, especially if the backup file is
+large. Nevertheless, as a last resort this might be an option.
+</p>
+
+<p>
+In my case, the backup device is an Apple Time Capsule, being also a
+NetBSD-operated device. My first plan, using the remote backup
+facility of <code>dump</code>, didn't work out because of the missing <code>rmt</code>
+command on the time capsule. Perhaps some day I'll try to find a
+statically linked <code>rmt</code> binary for NetBSD-6.0/evbarm (or cross-build
+it myself). For now, I'm resolving to using <code>mount_afp</code>, provided
+by pkgsrc, and mounting the time capsule filesystem to access it in a
+less sophisticated way.
+</p>
+
+<p>
+BTW, when doing so, I had to manually create a link to <code>/dev/fuse0</code>
+(<code>ln -s /dev/putter /dev/fuse0</code>) to make <code>afpfsd</code> work.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org6777f53" class="outline-2">
+<h2 id="org6777f53">1st tries</h2>
+<div class="outline-text-2" id="text-org6777f53">
+<div class="org-src-container">
+<pre class="src src-shell">sudo mount_afp afp://:passwd@host/path /mnt
+
+sudo fssconfig -cv fss0 /var/ /var/backups/snapshot
+sudo mount -r /dev/fss0 /mnt/
+sudo dump -0ua -f /tmp/var.backup /mnt/
+sudo umount /mnt/
+sudo fssconfig -u fss0
+sudo rm /var/backups/snapshot 
+
+sudo afp_client unmount /mnt
+
+sudo fssconfig -l -- list fss<span style="color: #a020f0;"> in</span> use
+
+chflags nodump file-or-dir
+ls -o
+dump 0a -h 0 -f /tmp/backup.1 /home
+
+chflags nonodump file-or-dir
+</pre>
+</div>
+</div>
+
+<div id="outline-container-org94c4218" class="outline-3">
+<h3 id="org94c4218">notes</h3>
+<div class="outline-text-3" id="text-org94c4218">
+<ul class="org-ul">
+<li>when a long dump is running, you can send a SIGSTATUS to the dump
+process to make it report it's progress. For example, when the
+status control character is mapped tp CTRL-T, a dump process
+running in the foreground reports the progress state when
+pressing that.</li>
+
+<li>dump from /dev/fss seems to work only indirectly by mounting to
+/mnt</li>
+<li>when using fss snapshots, as the device name is written into
+dumpdates, always consistently use the same different fss devices
+when dumping. eg fss0 -&gt; /, fss1 -&gt; /var, fss2 -&gt; /usr etc</li>
+
+<li>when restoring in wrong order, restore says 'Incremental tape too
+high' or ..'too low'  and stops</li>
+<li>when restoring increments, restore makes sure to unlink the
+restored file before replacing them</li>
+
+<li>restoring, start with (latest) level 0 dump, then work through
+all newer dumps leaving out each one where a newer dump with lower
+level exists.</li>
+<li>the dates can be extracted from output of <code>restore -t</code>.</li>
+<li>eg when dumps were generated with order 0 3 2 4, you'll find that
+for level 3 dump a newer one with lower level exists (number 2),
+so 3 is left out. The only one with lower level than 2 is the
+older 0, so you choose 2. 4 has also only lower ones with older
+dates, so 4 is also choosen, giving the restore order 0 2 4.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgec25751" class="outline-3">
+<h3 id="orgec25751">info</h3>
+<div class="outline-text-3" id="text-orgec25751">
+<p>
+dump -W
+</p>
+</div>
+</div>
+
+<div id="outline-container-org2ca7177" class="outline-3">
+<h3 id="org2ca7177">extract</h3>
+<div class="outline-text-3" id="text-org2ca7177">
+<div class="org-src-container">
+<pre class="src src-shell">restore -i -- interactive
+restore -t -- list contents
+restore -x -- extract single files or directories -- creates no restoresymtable
+restore -r -- restore (rebuild file system) -- creates a restoresymtable
+restore -ru -- full restore, but unlink restored files - so restore
+               into an existing filesystem
+</pre>
+</div>
+
+<p>
+remote:
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">cat /tmp/var.backup | restore -i -f -
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgbfcfe35" class="outline-3">
+<h3 id="orgbfcfe35">questions:</h3>
+<div class="outline-text-3" id="text-orgbfcfe35">
+<ul class="org-ul">
+<li>dump: address full filesystem by mount point (dont use subset?)</li>
+<li>and address one or more real subsets?</li>
+<li>create etc/dumpdates?</li>
+<li>full backup after restore?</li>
+<li>check dump file flags</li>
+<li></li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org0e5e3f5" class="outline-2">
+<h2 id="org0e5e3f5">putting it together</h2>
+<div class="outline-text-2" id="text-org0e5e3f5">
+<p>
+Finally, my <code>bin/backup.sh</code>. When sourced, provides some commands
+supporting in handling snapshots, mounting of the backup device,
+making an incremental backup following a configured strategy and
+accessing/restoring from the backup device. Includes an example on how
+to automate daily backups by calling it via crontab, saving the output
+to a log and mailing it to root. Not as configurable and
+documented as it could be, it may at least serve as a simple example.
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #b22222;">#</span><span style="color: #b22222;">!/usr/pkg/bin/</span><span style="color: #a020f0;">bash</span>
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">copy and adapt the config vars into ~/etc/backup.conf</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">put auth info like DUMPDEVPWD into ~/.backup.conf</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">and set it chmod 400 and chflags nodump</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">install as root crontab like this:</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;"># daily backups</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">0       1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh &amp;&amp; backup' 2&gt;&amp;1 | tee /var/log/backup.out | sendmail -t</span>
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">uncomment to test backup config</span>
+<span style="color: #b22222;">#</span><span style="color: #b22222;">TEST=echo</span>
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">define this when dump device must be mounted</span>
+<span style="color: #a0522d;">DUMPDEV</span>=afp://:${<span style="color: #a0522d;">DUMPDEVPWD</span>}@timecapsule/ 
+<span style="color: #a0522d;">DUMPMNT</span>=/mnt/bkup
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">unset if you dont want a snapshot</span>
+<span style="color: #a0522d;">FSS</span>=fss0
+<span style="color: #a0522d;">SRCDEV</span>=/
+<span style="color: #a0522d;">SNAPSHOT</span>=/root/snapshot
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">mountpoint of fs to backup</span>
+<span style="color: #a0522d;">SRCMNT</span>=/mnt/dev
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">backup device or file</span>
+<span style="color: #a0522d;">BACKUP</span>=${<span style="color: #a0522d;">DUMPMNT</span>}/client/dump
+<span style="color: #b22222;">#</span><span style="color: #b22222;">BACKUP=</span>
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">backup levels for each day of month</span>
+<span style="color: #a0522d;">LEVELS</span>=(- 0 3 2 5 4 7 6 1 3 2 5 4 7 6 1 3 2 5 4 7 6 1 3 2 5 4 7 6 1 3 2)
+
+<span style="color: #0000ff;">dumpcmd</span>() {
+  ${<span style="color: #a0522d;">TEST</span>} dump $<span style="color: #a0522d;">*</span>
+}
+
+<span style="color: #0000ff;">restorecmd</span>() {
+  ${<span style="color: #a0522d;">TEST</span>} restore $<span style="color: #a0522d;">*</span>
+}
+
+<span style="color: #483d8b;">export</span> <span style="color: #a0522d;">PATH</span>=$<span style="color: #a0522d;">PATH</span>:/usr/pkg/bin
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">absolute paths to use in root crontab</span>
+<span style="color: #483d8b;">test</span> -f /root/.backup.conf &amp;&amp; <span style="color: #483d8b;">.</span> /root/.backup.conf
+<span style="color: #483d8b;">test</span> -f /root/etc/backup.conf &amp;&amp; <span style="color: #483d8b;">.</span> /root/etc/backup.conf
+
+<span style="color: #0000ff;">backup_dev</span>() {
+  <span style="color: #a020f0;">if</span> [ <span style="color: #8b2252;">"${DUMPMNT}-"</span> != <span style="color: #8b2252;">"-"</span> ]; <span style="color: #a020f0;">then</span>
+    <span style="color: #a020f0;">case</span> <span style="color: #8b2252;">"$1"</span><span style="color: #a020f0;"> in</span>
+    mount) ${<span style="color: #a0522d;">TEST</span>} mount_afp ${<span style="color: #a0522d;">DUMPDEV</span>} ${<span style="color: #a0522d;">DUMPMNT</span>}
+           ;;
+    unmount) ${<span style="color: #a0522d;">TEST</span>} afp_client unmount ${<span style="color: #a0522d;">DUMPMNT</span>}
+             ;;
+    <span style="color: #a020f0;">esac</span>
+  <span style="color: #a020f0;">fi</span>
+}
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">when the time capsule needs to spin up, mount seems to fail</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">so a second try is done</span>
+<span style="color: #0000ff;">mount_backup</span>() {
+  backup_dev mount
+  <span style="color: #a020f0;">if</span> [ $<span style="color: #a0522d;">?</span> -eq 2 ]; <span style="color: #a020f0;">then</span>
+    backup_dev mount
+  <span style="color: #a020f0;">fi</span>
+}
+
+<span style="color: #0000ff;">snapshot</span>() {
+  <span style="color: #a020f0;">if</span> [ <span style="color: #8b2252;">"${FSS}-"</span> != <span style="color: #8b2252;">"-"</span> ]; <span style="color: #a020f0;">then</span>
+    <span style="color: #a020f0;">case</span> $<span style="color: #a0522d;">1</span><span style="color: #a020f0;"> in</span>
+    new) ${<span style="color: #a0522d;">TEST</span>} fssconfig -c ${<span style="color: #a0522d;">FSS</span>} ${<span style="color: #a0522d;">SRCDEV</span>} ${<span style="color: #a0522d;">SNAPSHOT</span>}
+         ${<span style="color: #a0522d;">TEST</span>} mount -r /dev/${<span style="color: #a0522d;">FSS</span>} ${<span style="color: #a0522d;">SRCMNT</span>}
+         ;;
+    rm) ${<span style="color: #a0522d;">TEST</span>} umount ${<span style="color: #a0522d;">SRCMNT</span>}
+        ${<span style="color: #a0522d;">TEST</span>} fssconfig -u ${<span style="color: #a0522d;">FSS</span>}
+        ${<span style="color: #a0522d;">TEST</span>} rm -f ${<span style="color: #a0522d;">SNAPSHOT</span>}
+        ;;
+    <span style="color: #a020f0;">esac</span>
+  <span style="color: #a020f0;">fi</span>
+}
+
+<span style="color: #0000ff;">find_level</span>() {
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">find level for today</span>
+  <span style="color: #a0522d;">LEV</span>=${<span style="color: #a0522d;">LEVELS</span>[<span style="color: #ff00ff;">`date '+%e'`</span>]}
+  <span style="color: #a020f0;">if</span> [ <span style="color: #8b2252;">"${1}-"</span> != <span style="color: #8b2252;">"-"</span> ]; <span style="color: #a020f0;">then</span>
+    <span style="color: #a0522d;">LEV</span>=${<span style="color: #a0522d;">1</span>}
+  <span style="color: #a020f0;">fi</span>
+  <span style="color: #a020f0;">if</span> [ <span style="color: #8b2252;">"${BACKUP}-"</span> != <span style="color: #8b2252;">"-"</span> ]; <span style="color: #a020f0;">then</span>
+    <span style="color: #a0522d;">BACKUPFILE</span>=${<span style="color: #a0522d;">BACKUP</span>}<span style="color: #483d8b;">.</span>${<span style="color: #a0522d;">LEV</span>}
+    <span style="color: #a0522d;">BOUT</span>=
+  <span style="color: #a020f0;">else</span>
+    <span style="color: #a0522d;">BACKUPFILE</span>=
+    <span style="color: #a0522d;">BOUT</span>=-
+  <span style="color: #a020f0;">fi</span>
+}
+
+<span style="color: #0000ff;">makedump</span>() {
+  find_level
+
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">save prev lev 0 dump as prevmonth</span>
+  <span style="color: #a020f0;">if</span> [ ${<span style="color: #a0522d;">LEV</span>} -eq 0 ];<span style="color: #a020f0;">then</span>
+    <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevmonth &amp;&amp; rm ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevmonth
+    <span style="color: #483d8b;">test</span> <span style="color: #8b2252;">"${BACKUPFILE}-"</span> != <span style="color: #8b2252;">"-"</span> &amp;&amp; <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">BACKUPFILE</span>} &amp;&amp; mv ${<span style="color: #a0522d;">BACKUPFILE</span>} ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevmonth
+  <span style="color: #a020f0;">fi</span>
+
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">save prev lev 1 dump as prevweek</span>
+  <span style="color: #a020f0;">if</span> [ ${<span style="color: #a0522d;">LEV</span>} -eq 1 ];<span style="color: #a020f0;">then</span>
+    <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevweek &amp;&amp; rm ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevweek
+    <span style="color: #483d8b;">test</span> <span style="color: #8b2252;">"${BACKUPFILE}-"</span> != <span style="color: #8b2252;">"-"</span> &amp;&amp; <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">BACKUPFILE</span>} &amp;&amp; mv ${<span style="color: #a0522d;">BACKUPFILE</span>} ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevweek
+  <span style="color: #a020f0;">fi</span>
+
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">and dump</span>
+  dumpcmd ${<span style="color: #a0522d;">LEV</span>}ua -h 0 -f ${<span style="color: #a0522d;">BACKUPFILE</span>}${<span style="color: #a0522d;">BOUT</span>} ${<span style="color: #a0522d;">SRCMNT</span>} 
+}
+
+<span style="color: #0000ff;">mailheader</span>() {
+  <span style="color: #483d8b;">echo</span> <span style="color: #8b2252;">"To: root"</span>
+  <span style="color: #483d8b;">printf</span> <span style="color: #8b2252;">"Subject: %s backup dump output for %s\n\n"</span> <span style="color: #ff00ff;">`hostname`</span> <span style="color: #8b2252;">"`date`"</span>
+}
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">backup [conf]</span>
+<span style="color: #0000ff;">backup</span>() {
+  mailheader
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">check for custom conf</span>
+  <span style="color: #483d8b;">test</span> $<span style="color: #a0522d;">#</span> -gt 0 &amp;&amp; <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">1</span>} &amp;&amp; <span style="color: #483d8b;">.</span> ${<span style="color: #a0522d;">1</span>}
+  find_level
+
+  snapshot new
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">backup_dev mount</span>
+  mount_backup
+  makedump
+  backup_dev unmount
+  snapshot rm
+}
+
+<span style="color: #b22222;"># </span><span style="color: #b22222;">restoredump [conf [args [lev]]]</span>
+<span style="color: #0000ff;">restoredump</span>() {
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">check for custom conf</span>
+  <span style="color: #483d8b;">test</span> $<span style="color: #a0522d;">#</span> -gt 0 &amp;&amp; <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">1</span>} &amp;&amp; <span style="color: #483d8b;">.</span> ${<span style="color: #a0522d;">1</span>}
+
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">check for args</span>
+  <span style="color: #483d8b;">test</span> $<span style="color: #a0522d;">#</span> -gt 1 &amp;&amp; <span style="color: #a0522d;">ARGS</span>=${<span style="color: #a0522d;">2</span>}
+
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">check for lev</span>
+  <span style="color: #483d8b;">test</span> $<span style="color: #a0522d;">#</span> -gt 2 &amp;&amp; <span style="color: #a0522d;">LEV</span>=${<span style="color: #a0522d;">3</span>} || <span style="color: #a0522d;">LEV</span>=
+  find_level $<span style="color: #a0522d;">LEV</span>
+
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">backup_dev mount</span>
+  mount_backup
+  restorecmd ${<span style="color: #a0522d;">ARGS</span>} -f ${<span style="color: #a0522d;">BACKUPFILE</span>}${<span style="color: #a0522d;">BOUT</span>}
+  backup_dev unmount
+}
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Jörg Kollmann
+(Reddit: <a href="https://www.reddit.com/user/e17i">u/e17i</a>)</p> <p>Made on
+emacs org-mode with <a href="https://jessekelly881-rethink.surge.sh/">Rethink</a></p>
+</div>
+</body>
+</html>
