@@ -3,6 +3,9 @@
 # copy and adapt the config vars into ~/etc/backup.conf
 # put auth info like DUMPDEVPWD into ~/.backup.conf
 # and set it chmod 400 and chflags nodump
+# install as root crontab like this:
+# # daily backups
+# 0       1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh && backup' 2>&1 | tee /var/log/backup.out | sendmail -t
 
 # uncomment to test backup config
 #TEST=echo
@@ -34,15 +37,18 @@ restorecmd() {
   ${TEST} restore $*
 }
 
-test -f ~/.backup.conf && . ~/.backup.conf
-test -f ~/etc/backup.conf && . ~/etc/backup.conf
+export PATH=$PATH:/usr/pkg/bin
+
+# absolute paths to use in root crontab
+test -f /root/.backup.conf && . /root/.backup.conf
+test -f /root/etc/backup.conf && . /root/etc/backup.conf
 
 backup_dev() {
   if [ "${DUMPMNT}-" != "-" ]; then
     case "$1" in
-    mount) ${TEST} /usr/pkg/bin/mount_afp ${DUMPDEV} ${DUMPMNT}
+    mount) ${TEST} mount_afp ${DUMPDEV} ${DUMPMNT}
            ;;
-    unmount) ${TEST} /usr/pkg/bin/afp_client unmount ${DUMPMNT}
+    unmount) ${TEST} afp_client unmount ${DUMPMNT}
              ;;
     esac
   fi
