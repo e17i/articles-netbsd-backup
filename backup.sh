@@ -1,7 +1,11 @@
 #!/usr/pkg/bin/bash
 
-# comment to really do backups
-TEST=echo
+# copy and adapt the config vars into ~/etc/backup.conf
+# put auth info like DUMPDEVPWD into ~/.backup.conf
+# and set it chmod 400 and chflags nodump
+
+# uncomment to test backup config
+#TEST=echo
 
 # define this when dump device must be mounted
 DUMPDEV=afp://:${DUMPDEVPWD}@timecapsule/ 
@@ -36,9 +40,9 @@ test -f ~/etc/backup.conf && . ~/etc/backup.conf
 backup_dev() {
   if [ "${DUMPMNT}-" != "-" ]; then
     case "$1" in
-    mount) ${TEST} mount_afp ${DUMPDEV} ${DUMPMNT}
+    mount) ${TEST} /usr/pkg/bin/mount_afp ${DUMPDEV} ${DUMPMNT}
            ;;
-    unmount) ${TEST} afp_client unmount ${DUMPMNT}
+    unmount) ${TEST} /usr/pkg/bin/afp_client unmount ${DUMPMNT}
              ;;
     esac
   fi
@@ -101,8 +105,14 @@ makedump() {
   dumpcmd ${LEV}ua -h 0 -f ${BACKUPFILE}${BOUT} ${SRCMNT} 
 }
 
+mailheader() {
+  echo "To: root"
+  printf "Subject: %s backup dump output for %s\n\n" `hostname` "`date`"
+}
+
 # backup [conf]
 backup() {
+  mailheader
   # check for custom conf
   test $# -gt 0 && test -f ${1} && . ${1}
   find_level
