@@ -70,8 +70,14 @@ state as before, as you probably haven't tagged the exact versions of
 all software installed before.
 
 As I want to be able to go back also after experimental software
-updates, my plan is to setup a full backup using
-[[https://netbsd.gw.com/cgi-bin/man-cgi?dump][dump(8)]] and [[https://netbsd.gw.com/cgi-bin/man-cgi?restore][restore(8)]].
+updates, my plan has been to setup a full backup using [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][dump(8)]] and
+[[https://netbsd.gw.com/cgi-bin/man-cgi?restore][restore(8)]], using the strategy suggested above. After setting up this plan and
+seeing my incremental backups are much smaller than the full one (and
+even the later weekly increments), I decided to modify the plan
+sketched out above and also do the first monthly backup as level 1,
+this way doing full backups only on demand (e.g. after a system
+upgrade). After some time I will re-evaluate how this works in
+practice.
 
 One downside of using [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][dump(8)]] is, it cannot reliably take backups from
 live file systems. That used to imply going down to single user and
@@ -171,6 +177,13 @@ chflags nonodump file-or-dir
      so 3 is left out. The only one with lower level than 2 is the
      older 0, so you choose 2. 4 has also only lower ones with older
      dates, so 4 is also choosen, giving the restore order 0 2 4.
+   - the dump frequency in days can be defined in fstab's fifth entry
+     when using snapshots, the snapshot devices are not listed in
+     fstab, so this mechanism isn't working. Automating the backup in
+     a crontab and defining own dump entries with own frequencies can
+     mitigate this.
+   - create etc/dumpdates
+   - full backup after restore
 
 ** info
 
@@ -192,18 +205,9 @@ remote:
 cat /tmp/var.backup | restore -i -f -
 #+END_SRC
 
-** questions:
-
- - dump: address full filesystem by mount point (dont use subset?)
- - and address one or more real subsets?
- - create etc/dumpdates?
- - full backup after restore?
- - check dump file flags
- - 
-
 * putting it together
 
-Finally, my =bin/backup.sh=. When sourced, provides some commands
+Finally, here is my =bin/backup.sh=. When sourced, provides some commands
 supporting in handling snapshots, mounting of the backup device,
 making an incremental backup following a configured strategy and
 accessing/restoring from the backup device. Includes an example on how
@@ -215,3 +219,18 @@ documented as it could be, it may at least serve as a simple example.
 ..and an example of a backup.conf showing how to dump/restore using
 ssh pipes:
 #+INCLUDE: "backup.conf" src shell
+
+* the end
+
+After a few days of automatic backups, this setup seems to work quite
+reliably. The files are rotated and replaced in the expected order,
+and looking at the contents with interactive restore everything looks
+good. Having set up this kind of backups gives a good feeling---now
+lets make sure continuously it is not too early..
+
+As a side note, while experimenting with =dump= and =restore=, I found
+the last dump made on my NeXTStep System some decades ago. And,
+believe it or not, the =restore= command on 2020's NetBSD is still
+able to read that old dump format. So when I'll find some more time, I
+hope to restore it into a virtualized NeXTStep reincarnation. That
+would be a recovery strategy having been working out really well!

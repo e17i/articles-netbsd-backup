@@ -6,6 +6,7 @@
 # install as root crontab like this:
 # # daily backups
 # 0       1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh && backup' 2>&1 | tee /var/log/backup.out | sendmail -t
+# 30      1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh && backup /root/etc/backup-var.conf' 2>&1 | tee /var/log/backup-var.out | sendmail -t
 
 # uncomment to test backup config
 #TEST=echo
@@ -92,8 +93,9 @@ find_level() {
   fi
 }
 
+# makedump lev
 makedump() {
-  find_level
+  find_level ${1}
 
   # save prev lev 0 dump as prevmonth
   if [ ${LEV} -eq 0 ];then
@@ -116,17 +118,19 @@ mailheader() {
   printf "Subject: %s backup dump output for %s\n\n" `hostname` "`date`"
 }
 
-# backup [conf]
+# backup [conf [lev]]
 backup() {
   mailheader
   # check for custom conf
   test $# -gt 0 && test -f ${1} && . ${1}
-  find_level
+  # check for lev
+  test $# -gt 1 && LEV=${2} || LEV=
+  find_level $LEV
 
   snapshot new
   # backup_dev mount
   mount_backup
-  makedump
+  makedump $LEV
   backup_dev unmount
   snapshot rm
 }
