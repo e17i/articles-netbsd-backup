@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-05-08 Fr. 20:12 -->
+<!-- 2020-05-11 Mo. 18:51 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Backup and Restore on NetBSD</title>
@@ -62,9 +62,9 @@ for the JavaScript code in this tag.
 <div id="content">
 <h1 class="title">Backup and Restore on NetBSD</h1>
 
-<div id="outline-container-org41baa15" class="outline-2">
-<h2 id="org41baa15">Overview</h2>
-<div class="outline-text-2" id="text-org41baa15">
+<div id="outline-container-orgc5e2543" class="outline-2">
+<h2 id="orgc5e2543">Overview</h2>
+<div class="outline-text-2" id="text-orgc5e2543">
 <p>
 Putting together the bits and pieces of a backup and restore concept,
 while not being rocket science, always seems to be a little bit
@@ -77,9 +77,9 @@ Suggestions on how to improve are always welcome.
 </div>
 </div>
 
-<div id="outline-container-orga8426e4" class="outline-2">
-<h2 id="orga8426e4">Some thoughts about Strategy</h2>
-<div class="outline-text-2" id="text-orga8426e4">
+<div id="outline-container-org3a7d47e" class="outline-2">
+<h2 id="org3a7d47e">Some thoughts about Strategy</h2>
+<div class="outline-text-2" id="text-org3a7d47e">
 <p>
 The first thing you probably see when reading about these topics is
 the advice, don't have a backup strategy but a recovery strategy. That
@@ -139,8 +139,14 @@ all software installed before.
 
 <p>
 As I want to be able to go back also after experimental software
-updates, my plan is to setup a full backup using
-<a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump">dump(8)</a> and <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore">restore(8)</a>.
+updates, my plan has been to setup a full backup using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump">dump(8)</a> and
+<a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore">restore(8)</a>, using the strategy suggested above. After setting up this plan and
+seeing my incremental backups are much smaller than the full one (and
+even the later weekly increments), I decided to modify the plan
+sketched out above and also do the first monthly backup as level 1,
+this way doing full backups only on demand (e.g. after a system
+upgrade). After some time I will re-evaluate how this works in
+practice.
 </p>
 
 <p>
@@ -153,9 +159,9 @@ easing the backup process very much.
 </div>
 </div>
 
-<div id="outline-container-org3df876d" class="outline-2">
-<h2 id="org3df876d">Accessing a remote backup device</h2>
-<div class="outline-text-2" id="text-org3df876d">
+<div id="outline-container-org09e200c" class="outline-2">
+<h2 id="org09e200c">Accessing a remote backup device</h2>
+<div class="outline-text-2" id="text-org09e200c">
 <p>
 When you don't have a backup tape device, you probably instead should
 have an external backup medium ready. In the easiest case, that device
@@ -213,9 +219,9 @@ BTW, when doing so, I had to manually create a link to <code>/dev/fuse0</code>
 </div>
 </div>
 
-<div id="outline-container-org6feb12f" class="outline-2">
-<h2 id="org6feb12f">1st tries</h2>
-<div class="outline-text-2" id="text-org6feb12f">
+<div id="outline-container-orgec6abf2" class="outline-2">
+<h2 id="orgec6abf2">1st tries</h2>
+<div class="outline-text-2" id="text-orgec6abf2">
 <div class="org-src-container">
 <pre class="src src-shell">sudo mount_afp afp://:passwd@host/path /mnt
 
@@ -239,9 +245,9 @@ chflags nonodump file-or-dir
 </div>
 </div>
 
-<div id="outline-container-orge5baeff" class="outline-3">
-<h3 id="orge5baeff">notes</h3>
-<div class="outline-text-3" id="text-orge5baeff">
+<div id="outline-container-orgcd9e7dd" class="outline-3">
+<h3 id="orgcd9e7dd">notes</h3>
+<div class="outline-text-3" id="text-orgcd9e7dd">
 <ul class="org-ul">
 <li>when a long dump is running, you can send a SIGSTATUS to the dump
 process to make it report it's progress. For example, when the
@@ -269,22 +275,29 @@ for level 3 dump a newer one with lower level exists (number 2),
 so 3 is left out. The only one with lower level than 2 is the
 older 0, so you choose 2. 4 has also only lower ones with older
 dates, so 4 is also choosen, giving the restore order 0 2 4.</li>
+<li>the dump frequency in days can be defined in fstab's fifth entry
+when using snapshots, the snapshot devices are not listed in
+fstab, so this mechanism isn't working. Automating the backup in
+a crontab and defining own dump entries with own frequencies can
+mitigate this.</li>
+<li>create etc/dumpdates</li>
+<li>full backup after restore</li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org7b58a3f" class="outline-3">
-<h3 id="org7b58a3f">info</h3>
-<div class="outline-text-3" id="text-org7b58a3f">
+<div id="outline-container-org1aced47" class="outline-3">
+<h3 id="org1aced47">info</h3>
+<div class="outline-text-3" id="text-org1aced47">
 <p>
 dump -W
 </p>
 </div>
 </div>
 
-<div id="outline-container-org9f0b94b" class="outline-3">
-<h3 id="org9f0b94b">extract</h3>
-<div class="outline-text-3" id="text-org9f0b94b">
+<div id="outline-container-org4ed8b22" class="outline-3">
+<h3 id="org4ed8b22">extract</h3>
+<div class="outline-text-3" id="text-org4ed8b22">
 <div class="org-src-container">
 <pre class="src src-shell">restore -i -- interactive
 restore -t -- list contents
@@ -304,27 +317,13 @@ remote:
 </div>
 </div>
 </div>
-
-<div id="outline-container-org580e985" class="outline-3">
-<h3 id="org580e985">questions:</h3>
-<div class="outline-text-3" id="text-org580e985">
-<ul class="org-ul">
-<li>dump: address full filesystem by mount point (dont use subset?)</li>
-<li>and address one or more real subsets?</li>
-<li>create etc/dumpdates?</li>
-<li>full backup after restore?</li>
-<li>check dump file flags</li>
-<li></li>
-</ul>
-</div>
-</div>
 </div>
 
-<div id="outline-container-org89851e4" class="outline-2">
-<h2 id="org89851e4">putting it together</h2>
-<div class="outline-text-2" id="text-org89851e4">
+<div id="outline-container-org8154398" class="outline-2">
+<h2 id="org8154398">putting it together</h2>
+<div class="outline-text-2" id="text-org8154398">
 <p>
-Finally, my <code>bin/backup.sh</code>. When sourced, provides some commands
+Finally, here is my <code>bin/backup.sh</code>. When sourced, provides some commands
 supporting in handling snapshots, mounting of the backup device,
 making an incremental backup following a configured strategy and
 accessing/restoring from the backup device. Includes an example on how
@@ -341,6 +340,7 @@ documented as it could be, it may at least serve as a simple example.
 <span style="color: #b22222;"># </span><span style="color: #b22222;">install as root crontab like this:</span>
 <span style="color: #b22222;"># </span><span style="color: #b22222;"># daily backups</span>
 <span style="color: #b22222;"># </span><span style="color: #b22222;">0       1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh &amp;&amp; backup' 2&gt;&amp;1 | tee /var/log/backup.out | sendmail -t</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">30      1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh &amp;&amp; backup /root/etc/backup-var.conf' 2&gt;&amp;1 | tee /var/log/backup-var.out | sendmail -t</span>
 
 <span style="color: #b22222;"># </span><span style="color: #b22222;">uncomment to test backup config</span>
 <span style="color: #b22222;">#</span><span style="color: #b22222;">TEST=echo</span>
@@ -427,8 +427,9 @@ documented as it could be, it may at least serve as a simple example.
   <span style="color: #a020f0;">fi</span>
 }
 
+<span style="color: #b22222;"># </span><span style="color: #b22222;">makedump lev</span>
 <span style="color: #0000ff;">makedump</span>() {
-  find_level
+  find_level ${<span style="color: #a0522d;">1</span>}
 
   <span style="color: #b22222;"># </span><span style="color: #b22222;">save prev lev 0 dump as prevmonth</span>
   <span style="color: #a020f0;">if</span> [ ${<span style="color: #a0522d;">LEV</span>} -eq 0 ];<span style="color: #a020f0;">then</span>
@@ -451,17 +452,19 @@ documented as it could be, it may at least serve as a simple example.
   <span style="color: #483d8b;">printf</span> <span style="color: #8b2252;">"Subject: %s backup dump output for %s\n\n"</span> <span style="color: #ff00ff;">`hostname`</span> <span style="color: #8b2252;">"`date`"</span>
 }
 
-<span style="color: #b22222;"># </span><span style="color: #b22222;">backup [conf]</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">backup [conf [lev]]</span>
 <span style="color: #0000ff;">backup</span>() {
   mailheader
   <span style="color: #b22222;"># </span><span style="color: #b22222;">check for custom conf</span>
   <span style="color: #483d8b;">test</span> $<span style="color: #a0522d;">#</span> -gt 0 &amp;&amp; <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">1</span>} &amp;&amp; <span style="color: #483d8b;">.</span> ${<span style="color: #a0522d;">1</span>}
-  find_level
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">check for lev</span>
+  <span style="color: #483d8b;">test</span> $<span style="color: #a0522d;">#</span> -gt 1 &amp;&amp; <span style="color: #a0522d;">LEV</span>=${<span style="color: #a0522d;">2</span>} || <span style="color: #a0522d;">LEV</span>=
+  find_level $<span style="color: #a0522d;">LEV</span>
 
   snapshot new
   <span style="color: #b22222;"># </span><span style="color: #b22222;">backup_dev mount</span>
   mount_backup
-  makedump
+  makedump $<span style="color: #a0522d;">LEV</span>
   backup_dev unmount
   snapshot rm
 }
@@ -515,14 +518,36 @@ ssh pipes:
 
 <span style="color: #b22222;"># </span><span style="color: #b22222;">uncomment this to define custom commands</span>
 <span style="color: #b22222;">#</span><span style="color: #b22222;">dumpcmd() {</span>
-<span style="color: #b22222;">#  </span><span style="color: #b22222;">dump $* #| ssh timecapsule dd of=/Volumes/dk2/ShareRoot/client/dump.${LEV}</span>
+<span style="color: #b22222;">#  </span><span style="color: #b22222;">dump $* | ssh timecapsule dd of=/Volumes/dk2/ShareRoot/client/dump.${LEV}</span>
 <span style="color: #b22222;">#</span><span style="color: #b22222;">}</span>
 
 <span style="color: #b22222;">#</span><span style="color: #b22222;">restorecmd() {</span>
-<span style="color: #b22222;">#  </span><span style="color: #b22222;">ssh timecapsule dd if=/Volumes/dk2/ShareRoot/client/dump.${LEV} | ${TEST} restore $*</span>
+<span style="color: #b22222;">#  </span><span style="color: #b22222;">ssh timecapsule dd if=/Volumes/dk2/ShareRoot/client/dump.${LEV} | restore $*</span>
 <span style="color: #b22222;">#</span><span style="color: #b22222;">}</span>
 </pre>
 </div>
+</div>
+</div>
+
+<div id="outline-container-org355dad5" class="outline-2">
+<h2 id="org355dad5">the end</h2>
+<div class="outline-text-2" id="text-org355dad5">
+<p>
+After a few days of automatic backups, this setup seems to work quite
+reliably. The files are rotated and replaced in the expected order,
+and looking at the contents with interactive restore everything looks
+good. Having set up this kind of backups gives a good feeling&#x2014;now
+lets make sure continuously it is not too early..
+</p>
+
+<p>
+As a side note, while experimenting with <code>dump</code> and <code>restore</code>, I found
+the last dump made on my NeXTStep System some decades ago. And,
+believe it or not, the <code>restore</code> command on 2020's NetBSD is still
+able to read that old dump format. So when I'll find some more time, I
+hope to restore it into a virtualized NeXTStep reincarnation. That
+would be a recovery strategy having been working out really well!
+</p>
 </div>
 </div>
 </div>
