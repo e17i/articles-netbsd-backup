@@ -4,7 +4,7 @@
 # org-html-postamble: t -*-
 #
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="chrome/rethink.css" />
-#+HTML_HEAD_EXTRA: <img src="image1.jpg" />
+#+HTML_HEAD_EXTRA: <img src="image1.jpg"/><div style="padding:2vh"><a style="font-weight:900; text-decoration:none" href="/">Home</a></div>
 #+OPTIONS: toc:nil num:nil html-style:nil
 # #+INFOJS_OPT: view:showall toc:nil path:chrome/org-info.js
 #+AUTHOR: Jörg Kollmann
@@ -16,7 +16,7 @@ Putting together the bits and pieces of a backup and restore concept,
 while not being rocket science, always seems to be a little bit
 ungrateful. Most Admin Handbooks handle this topic only within few
 pages. After replacing my old Mac Mini's OS by NetBSD, I tried to
-implement an automated backup, allowing me to handle it similar to
+implement an automated backup, allowing me to handle it similarly to
 the time machine backups I've been using before.
 Suggestions on how to improve are always welcome.
 
@@ -32,12 +32,12 @@ same disks to be backed up, but on detachable media or on a remote
 computer. Also it should be set read-only after the backup is
 finished, so it cannot accidently be damaged when accessing it.
 
-The next question is how much time and space you want to donate to
-your backups. The easiest way probably is to do a full backup each
-time. Then recovery is easy: just apply the latest backup. The flip
-side is, each backup might take a long time and much storage space. So the
+The next question is how much time and space you want to dedicate to
+your backups. When doing a full backup each
+time, recovery is easy: just apply the latest backup. On the flip
+side, each backup might take a long time and much storage space. So the
 other extreme might be to only start with one full backup, afterwards always
-backup only the increments to the previous backup. Then, of course,
+backing up only the increments to the previous backup. Then, of course,
 the restore is expensive as you need to apply each single backup from
 first to last in right order to do a full restore. Tools like
 [[https://netbsd.gw.com/cgi-bin/man-cgi?rsync][rsync(1)]] mitigate by merging each increment into the
@@ -49,22 +49,23 @@ increment only every second time---that is, to generate the diff to
 the same preceeding backup for the following two consecutive backups.
 Besides that, it suggests generating weekly backups incrementing on
 the original full backup. Finally, it suggests to build a new full
-backup every four weeks, maintaining a three-level strategy. This way,
-in the worst case, restoring the backup of a cycle's last day, you
+backup every four weeks, this way maintaining a three-level strategy
+of stacked increments. Then,
+in the worst case, like restoring the backup of a cycle's last day, you
 need to apply the initial full backup, the last weekly increment and
 the daily increments of the third, fifth and seventh day, so you need
 to apply at most five backups to do a full restore.
 
 [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][dump(8)]] allows to define this using backup levels. Level 0 always is a
 full backup. Each higher level generates the diff to the last lower
-level's backup contents. So applying the dump levels ~0 3 2 5 4 7 6~
-for the first and ~1 3 2 5 4 7 6~ for the three following weeks
+level's backup contents. So applying the dump levels =0 3 2 5 4 7 6=
+for the first and =1 3 2 5 4 7 6= for the three next weeks
 follows the backup plan skeched out above. Of course, you may always
 fine-tune this to your needs.
 
 Another plan would be to only backup personal data like your user
 directories. Then the restore plan would include a fresh OS
-setup, installing all software needed and then fetching only the user
+setup, installing of all software needed and then fetching only the user
 directories from backup. This doesn't guarantee you get to the same
 state as before, as you probably haven't tagged the exact versions of
 all software installed before.
@@ -79,27 +80,21 @@ this way doing full backups only on demand (e.g. after a system
 upgrade). After some time I will re-evaluate how this works in
 practice.
 
-One downside of using [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][dump(8)]] is, it cannot reliably take backups from
-live file systems. That used to imply going down to single user and
-umounting the files systems for each backup. Fortunately, NetBSD has a
-nice support for file system snapshots courtesy of [[https://netbsd.gw.com/cgi-bin/man-cgi?fssconfig][fssconfig(8)]],
-easing the backup process very much.
-
 * Accessing a remote backup device
 
 When you don't have a backup tape device, you probably instead should
 have an external backup medium ready. In the easiest case, that device
-may be attached directly to your computer, so you can adress it's
-device entry directly.
+may be attached directly to your computer, so you can just adress it's
+device entry.
 
 When it is attached to another computer, there are several options.
 The first one would be to use the remote option of ~dump~, which
-indirectly acesses the remote computer using ~ssh~ and ~rmt~, so both must be installed
+indirectly acesses the remote computer using [[https://netbsd.gw.com/cgi-bin/man-cgi?ssh][ssh(1)]] and  [[https://netbsd.gw.com/cgi-bin/man-cgi?rmt][rmt(8)]], so both must be installed
 and accessable there. Then you can set environment variable
-~RCMD_CMD~ to ~ssh~ and address you device by option ~-f
+~RCMD_CMD~ to ~ssh~ and address your device by option ~-f
 user@host:file~.
 
-If ~ssh~ access or ~rmt~ is not available, your next option would be to pipe to ~dd~
+If ~rmt~ is not available, your next option would be to pipe to [[https://netbsd.gw.com/cgi-bin/man-cgi?dd][dd(1)]]
 using ~ssh~.
 #+BEGIN_SRC shell
 dump <options> | ssh -l <user> <host> dd of=/dev/<dump-device>
@@ -109,7 +104,7 @@ The pipe for the way back to restore then would be like this:
 #+BEGIN_SRC shell
 ssh -l <user> <host> dd if=/dev/<dump-device> | restore -f -
 #+END_SRC
-where =/dev/dump-device= might also be a path to a plain file. 
+where ~/dev/dump-device~ might also be a path to a plain file. 
 Unfortunately, doing an interactive restore via this sort of piped ssh
 seems to be not such a good idea, especially if the backup file is
 large. Nevertheless, as a last resort this might be an option.
@@ -126,107 +121,194 @@ less sophisticated way.
 BTW, when doing so, I had to manually create a link to ~/dev/fuse0~
 (~ln -s /dev/putter /dev/fuse0~) to make ~afpfsd~ work.
 
-* 1st tries
+* Snapshots
+
+One downside of using [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][dump(8)]] is, it cannot reliably take backups from
+live file systems. That used to imply the need to go down to single user and
+umount the files systems for each backup. Fortunately, NetBSD has a
+nice support for file system snapshots courtesy of [[https://netbsd.gw.com/cgi-bin/man-cgi?fssconfig][fssconfig(8)]],
+easing the backup process very much.
+
+As root, for example, use
+#+BEGIN_SRC shell
+fssconfig -cv fss0 / /root/snapshot
+#+END_SRC
+to snapshot the file system and make the snapshot reachable through
+the ~/dev/fss0~ device. The file ~/root/snapshot~ is used internally
+to manage the snapshot while the filesystems stays live. You can then
+mount the device read-only and see the unchanged directory, even if
+you change the live filesystem.
+
+~fssconfig -l~ shows the snapshot devices currently in use. With
+~fssconfig -u~ you can remove a snapshot after dumping it. Afterwards,
+the snapshot file can also be removed.
+
+=dump= logs the time, device and level of each dump into
+=/etc/dumpdates=. Normally, the file system devices are used here. 
+But when using fss snapshots, as the fss device name is written into
+dumpdates instead, you should always consistently use the same different fss
+device numbers when dumping different file systems. For example use ~fss0~ for
+root, ~fss1~ for ~usr~ when they are on different mount points, etc.
+
+* Restoring
+
+All this is done to be able to walk the opposite way and restore a
+damaged system. So, when in case of emergency, use [[https://netbsd.gw.com/cgi-bin/man-cgi?restore][restore(8)]] to apply
+your backups. It can do full or
+partial restores and also has an interactive mode.
 
 #+BEGIN_SRC shell
-sudo mount_afp afp://:passwd@host/path /mnt
+restore -t -f dump_file
+#+END_SRC
+This doesn't modify anything, but only outputs the contents of the
+backup. This is not only the file and directory names, but also the
+dump date, level and in case of an incremental backup, the previous
+level.
 
-sudo fssconfig -cv fss0 /var/ /var/backups/snapshot
-sudo mount -r /dev/fss0 /mnt/
-sudo dump -0ua -f /tmp/var.backup /mnt/
-sudo umount /mnt/
-sudo fssconfig -u fss0
-sudo rm /var/backups/snapshot 
+When doing a full restore into a fresh file system, prepare it using
+~newfs~ before. Afterwards, ~mount~ and ~cd~ into the new file system,
+as the restored files go into the current directory.
+#+BEGIN_SRC shell
+restore -rf dump_file
+#+END_SRC
+This rebuilds the file system. When the dump is done onto a set of
+tapes (or other media) or when afterwards incremental dumps should be
+applied, ~restore~ needs to pass information between the different runs. So it
+creates a =restoresymtable= file in the root directory storing infos about it's
+progress. Consequently, this file should be left
+until the complete restore is finished.
 
-sudo afp_client unmount /mnt
+#+BEGIN_SRC shell
+restore -if dump_file
+#+END_SRC
+This allows you to interactively look into a dump and select single
+files or directories to be restored. =?= shows the commands available here.
+Often, when you just want to get back
+some older versions of a file, this is the most useful tool.
 
-sudo fssconfig -l -- list fss in use
+#+BEGIN_SRC shell
+restore -xf dump_file
+#+END_SRC
+This extracts single files or directories instead of doing a full
+restore, so it also creates no =restoresymtable=.
 
+And finally,
+#+BEGIN_SRC shell
+restore -ruf dump_file
+#+END_SRC
+does a full restore, but can be used on a populated file system. It
+unlinks and therefore replaces files by the versions from the backup.
+So it can be used to try and repair a file system.
+By the way, when applying an incremental backup after a full restore,
+the files to be replaced by the increment are also unlinked before, so
+this also works as expected without any need to specify the =-u= argument.
+
+When restoring a backup done with the strategy skeched out above,
+start with the (latest) level 0 dump, then work through all newer
+dumps leaving out each one where a newer dump with lower level exists.
+The dates and other infos about each dump file can be extracted from
+output of =restore -t=, or interactively by using the =what= command
+in =restore -i=. For example, when dumps were generated with order =0
+3 2 4=, you'll find that for level 3 dump a newer one with lower level
+exists (number 2), so 3 is left out. The only one with lower level
+than 2 is the older 0, so you choose 2. 4 has also only lower ones
+with older dates, so 4 is also choosen, giving the restore order =0 2
+4=.
+
+* Some notes on using dump and restore
+
+You can exclude files or directories from the backup by setting the
+=nodump= flag. =ls -o= shows the current flags. Set =nonodump= to
+remove a flag.
+#+BEGIN_SRC shell
 chflags nodump file-or-dir
 ls -o
-dump 0a -h 0 -f /tmp/backup.1 /home
-
 chflags nonodump file-or-dir
 #+END_SRC
 
-** notes
-
-   - when a long dump is running, you can send a SIGSTATUS to the dump
-     process to make it report it's progress. For example, when the
-     status control character is mapped tp CTRL-T, a dump process
-     running in the foreground reports the progress state when
-     pressing that.
-
-   - dump from /dev/fss seems to work only indirectly by mounting to
-     /mnt
-   - when using fss snapshots, as the device name is written into
-     dumpdates, always consistently use the same different fss devices
-     when dumping. eg fss0 -> /, fss1 -> /var, fss2 -> /usr etc
-
-   - when restoring in wrong order, restore says 'Incremental tape too
-     high' or ..'too low'  and stops
-   - when restoring increments, restore makes sure to unlink the
-     restored file before replacing them
-
-   - restoring, start with (latest) level 0 dump, then work through
-     all newer dumps leaving out each one where a newer dump with lower
-     level exists.
-   - the dates can be extracted from output of =restore -t=.
-   - eg when dumps were generated with order 0 3 2 4, you'll find that
-     for level 3 dump a newer one with lower level exists (number 2),
-     so 3 is left out. The only one with lower level than 2 is the
-     older 0, so you choose 2. 4 has also only lower ones with older
-     dates, so 4 is also choosen, giving the restore order 0 2 4.
-   - the dump frequency in days can be defined in fstab's fifth entry
-     when using snapshots, the snapshot devices are not listed in
-     fstab, so this mechanism isn't working. Automating the backup in
-     a crontab and defining own dump entries with own frequencies can
-     mitigate this.
-   - create etc/dumpdates
-   - full backup after restore
-
-** info
-
-dump -W
-
-** extract
-
+By default, the =nodump= flags are honored for incremental backups
+starting with level 1, but you can change this with the ~dump -h~
+option. I'm setting this to 0 to always have the flags honored.
 #+BEGIN_SRC shell
-restore -i -- interactive
-restore -t -- list contents
-restore -x -- extract single files or directories -- creates no restoresymtable
-restore -r -- restore (rebuild file system) -- creates a restoresymtable
-restore -ru -- full restore, but unlink restored files - so restore
-               into an existing filesystem
+dump 0a -h 0 -f /tmp/backup.1 /home
 #+END_SRC
 
-remote:
+Otherwise, you can also specify a list of paths, when only a subset of
+a file system should be backed up. When doing this, =dump= is always
+doing a full level 0 backup of the given directories.
+
+When a long dump is running, you can send a =SIGSTATUS= to the dump
+process to make it report it's progress. For example, when the status
+control character is mapped to =CTRL-T= via [[https://netbsd.gw.com/cgi-bin/man-cgi?stty][stty(1)]], a dump process running in the
+foreground reports the progress when pressing that (restore also).
+
+If you are manually doing backups, besides looking at =/etc/dumpdates=
+you can use ~dump -w~ to show the file systems currently to be dumped.
+Otherwise, you can always use ~dump -W~ to show the last dump times and
+levels of all dumped file systems.
+
+The dump frequency in days, used to determine which file systems need
+to be dumped next, can be defined in =/etc/fstab='s fifth entry.
+But when using snapshots, the devices actually dumped are not listed
+in fstab, so this mechanism isn't working. Automating the backup in a
+crontab and defining own dump entries with adjacent frequencies can
+mitigate this.
+
+* An example session
+
+Here is an example of mounting/unmounting an afp backup device,
+handling a file system snapshot and doing a full dump.
+
 #+BEGIN_SRC shell
-cat /tmp/var.backup | restore -i -f -
+mount_afp afp://:passwd@host/path /mnt/backup
+fssconfig -cv fss0 / /snapshot
+mount -r /dev/fss0 /mnt/dev
+dump -0ua -h 0 -f /mnt/backup/dumpfile.0 /mnt/dev
+umount /mnt/dev
+fssconfig -u fss0
+rm /snapshot 
+afp_client unmount /mnt/backup
 #+END_SRC
 
-* putting it together
+To do a restore, you would use the same sequence, replacing the ~dump~
+command perhaps with an interactive restore:
+#+BEGIN_SRC shell
+restore -if /mnt/backup/var
+#+END_SRC
+
+* Putting the pieces together
 
 Finally, here is my =bin/backup.sh=. When sourced, provides some commands
-supporting in handling snapshots, mounting of the backup device,
+to support handling snapshots, mounting of the backup device,
 making an incremental backup following a configured strategy and
-accessing/restoring from the backup device. Includes an example on how
+accessing/restoring from the backup device. For example, after
+modifying the conf file to your needs, a manual
+initial level 0 dump can be done like this:
+#+BEGIN_SRC shell
+. /root/bin/backup.sh && backup - 0
+#+END_SRC
+An interactive restore session of the last level 5 dump is done by
+this:
+#+BEGIN_SRC shell
+. /root/bin/backup.sh && restoredump - -i 5
+#+END_SRC
+The script includes an example on how
 to automate daily backups by calling it via crontab, saving the output
-to a log and mailing it to root. Not as configurable and
-documented as it could be, it may at least serve as a simple example.
+to a log and mailing it to root.
+Take caution as this is not yet so well tested---just use it as a simple example.
 #+INCLUDE: "backup.sh" src shell
 
 ..and an example of a backup.conf showing how to dump/restore using
 ssh pipes:
 #+INCLUDE: "backup.conf" src shell
 
-* the end
+* At the end...
 
 After a few days of automatic backups, this setup seems to work quite
 reliably. The files are rotated and replaced in the expected order,
-and looking at the contents with interactive restore everything looks
+looking at the contents with interactive restore and doing a test recovery, everything looks
 good. Having set up this kind of backups gives a good feeling---now
-lets make sure continuously it is not too early..
+lets make sure continuously this actually is justified..
 
 As a side note, while experimenting with =dump= and =restore=, I found
 the last dump made on my NeXTStep System some decades ago. And,

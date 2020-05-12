@@ -68,6 +68,7 @@ snapshot() {
   if [ "${FSS}-" != "-" ]; then
     case $1 in
     new) ${TEST} fssconfig -c ${FSS} ${SRCDEV} ${SNAPSHOT}
+         ${TEST} chflags nodump ${SNAPSHOT}
          ${TEST} mount -r /dev/${FSS} ${SRCMNT}
          ;;
     rm) ${TEST} umount ${SRCMNT}
