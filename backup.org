@@ -40,12 +40,12 @@ other extreme might be to only start with one full backup, afterwards always
 backing up only the increments to the previous backup. Then, of course,
 the restore is expensive as you need to apply each single backup from
 first to last in right order to do a full restore. Tools like
-[[https://netbsd.gw.com/cgi-bin/man-cgi?rsync][rsync(1)]] mitigate by merging each increment into the
+[[https://netbsd.gw.com/cgi-bin/man-cgi?rsync][=rsync(1)=]] mitigate by merging each increment into the
 previous backup, managing a copy of the backed up file system. But
 this collides with the requirement of not modifying previous backups.
 
-As a compromise, the [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][dump(8)]] manpage suggests to do the next
-increment only every second time---that is, to generate the diff to
+As a compromise, the manpage of the [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]] tool suggests to do the next
+increment only every /nth/ time (for example every second time)---that is, to generate the diff to
 the same preceeding backup for the following two consecutive backups.
 Besides that, it suggests generating weekly backups incrementing on
 the original full backup. Finally, it suggests to build a new full
@@ -56,11 +56,11 @@ need to apply the initial full backup, the last weekly increment and
 the daily increments of the third, fifth and seventh day, so you need
 to apply at most five backups to do a full restore.
 
-[[https://netbsd.gw.com/cgi-bin/man-cgi?dump][dump(8)]] allows to define this using backup levels. Level 0 always is a
+[[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]] allows to define this using backup levels. Level 0 always is a
 full backup. Each higher level generates the diff to the last lower
 level's backup contents. So applying the dump levels =0 3 2 5 4 7 6=
 for the first and =1 3 2 5 4 7 6= for the three next weeks
-follows the backup plan skeched out above. Of course, you may always
+follows the backup plan sketched out above. Of course, you may always
 fine-tune this to your needs.
 
 Another plan would be to only backup personal data like your user
@@ -71,8 +71,8 @@ state as before, as you probably haven't tagged the exact versions of
 all software installed before.
 
 As I want to be able to go back also after experimental software
-updates, my plan has been to setup a full backup using [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][dump(8)]] and
-[[https://netbsd.gw.com/cgi-bin/man-cgi?restore][restore(8)]], using the strategy suggested above. After setting up this plan and
+updates, my plan has been to setup a full backup using [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]] and
+[[https://netbsd.gw.com/cgi-bin/man-cgi?restore][=restore(8)=]], using the strategy suggested above. After setting up this plan and
 seeing my incremental backups are much smaller than the full one (and
 even the later weekly increments), I decided to modify the plan
 sketched out above and also do the first monthly backup as level 1,
@@ -88,14 +88,13 @@ may be attached directly to your computer, so you can just adress it's
 device entry.
 
 When it is attached to another computer, there are several options.
-The first one would be to use the remote option of ~dump~, which
-indirectly acesses the remote computer using [[https://netbsd.gw.com/cgi-bin/man-cgi?ssh][ssh(1)]] and  [[https://netbsd.gw.com/cgi-bin/man-cgi?rmt][rmt(8)]], so both must be installed
+The first one would be to use the remote option of [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]], which
+indirectly acesses the remote computer using [[https://netbsd.gw.com/cgi-bin/man-cgi?ssh][=ssh(1)=]] and [[https://netbsd.gw.com/cgi-bin/man-cgi?rmt][=rmt(8)=]], so both must be installed
 and accessable there. Then you can set environment variable
-~RCMD_CMD~ to ~ssh~ and address your device by option ~-f
-user@host:file~.
+=RCMD_CMD= to =ssh= and address your device by option =-f user@host:file=.
 
-If ~rmt~ is not available, your next option would be to pipe to [[https://netbsd.gw.com/cgi-bin/man-cgi?dd][dd(1)]]
-using ~ssh~.
+If, for example, [[https://netbsd.gw.com/cgi-bin/man-cgi?rmt][=rmt(8)=]] is not available, your next option would be to pipe to [[https://netbsd.gw.com/cgi-bin/man-cgi?dd][=dd(1)=]]
+using [[https://netbsd.gw.com/cgi-bin/man-cgi?ssh][=ssh(1)=]].
 #+BEGIN_SRC shell
 dump <options> | ssh -l <user> <host> dd of=/dev/<dump-device>
 #+END_SRC
@@ -104,29 +103,34 @@ The pipe for the way back to restore then would be like this:
 #+BEGIN_SRC shell
 ssh -l <user> <host> dd if=/dev/<dump-device> | restore -f -
 #+END_SRC
-where ~/dev/dump-device~ might also be a path to a plain file. 
+where =/dev/dump-device= might also be a path to a plain file. 
 Unfortunately, doing an interactive restore via this sort of piped ssh
 seems to be not such a good idea, especially if the backup file is
-large. Nevertheless, as a last resort this might be an option.
+large. Nevertheless, this might be an option for
+doing non-interactive restores.
 
 In my case, the backup device is an Apple Time Capsule, being also a
 NetBSD-operated device. My first plan, using the remote backup
-facility of ~dump~, didn't work out because of the missing ~rmt~
+facility of [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]], didn't work out because of the missing [[https://netbsd.gw.com/cgi-bin/man-cgi?rmt][=rmt(8)=]]
 command on the time capsule. Perhaps some day I'll try to find a
-statically linked ~rmt~ binary for NetBSD-6.0/evbarm (or cross-build
-it myself). For now, I'm resolving to using ~mount_afp~, provided
+statically linked [[https://netbsd.gw.com/cgi-bin/man-cgi?rmt][=rmt(8)=]] binary for NetBSD-6.0/evbarm (or cross-build
+it myself). For now, I'm resolving to using =mount_afp=, provided
 by pkgsrc, and mounting the time capsule filesystem to access it in a
 less sophisticated way.
 
-BTW, when doing so, I had to manually create a link to ~/dev/fuse0~
-(~ln -s /dev/putter /dev/fuse0~) to make ~afpfsd~ work.
+BTW, when doing so, I had to manually create a link to =/dev/fuse0=
+(~ln -s /dev/putter /dev/fuse0~) to make =afpfsd= work.
+Until now, the automatic mounting of the afp device doesn't seem to
+work reliably, which kind of counteracts my approach a little bit. I had at
+least one case where the ~afpfsd~ crashed while dumping. This
+needs some more investigation..
 
 * Snapshots
 
-One downside of using [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][dump(8)]] is, it cannot reliably take backups from
+One downside of using [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]] is that it cannot reliably take backups from
 live file systems. That used to imply the need to go down to single user and
 umount the files systems for each backup. Fortunately, NetBSD has a
-nice support for file system snapshots courtesy of [[https://netbsd.gw.com/cgi-bin/man-cgi?fssconfig][fssconfig(8)]],
+nice support for file system snapshots courtesy of [[https://netbsd.gw.com/cgi-bin/man-cgi?fssconfig][=fssconfig(8)=]],
 easing the backup process very much.
 
 As root, for example, use
@@ -134,46 +138,54 @@ As root, for example, use
 fssconfig -cv fss0 / /root/snapshot
 #+END_SRC
 to snapshot the file system and make the snapshot reachable through
-the ~/dev/fss0~ device. The file ~/root/snapshot~ is used internally
+the =/dev/fss0= device. The file =/root/snapshot= is used internally
 to manage the snapshot while the filesystems stays live. You can then
-mount the device read-only and see the unchanged directory, even if
+mount the device and see the unchanged directory, even if
 you change the live filesystem.
 
 ~fssconfig -l~ shows the snapshot devices currently in use. With
 ~fssconfig -u~ you can remove a snapshot after dumping it. Afterwards,
 the snapshot file can also be removed.
 
-=dump= logs the time, device and level of each dump into
+ [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]] logs the time, device and level of each dump into
 =/etc/dumpdates=. Normally, the file system devices are used here. 
 But when using fss snapshots, as the fss device name is written into
 dumpdates instead, you should always consistently use the same different fss
-device numbers when dumping different file systems. For example use ~fss0~ for
-root, ~fss1~ for ~usr~ when they are on different mount points, etc.
+device numbers when dumping different file systems. For example use =fss0= for
+root, =fss1= for =/usr= when they are on different mount points, etc.
+
+As I don't want the directory entry for the snapshot to be included
+into the dump, I put it into =/tmp=, which resides on a =tmpfs= in my
+system, so it is guaranteed to not be included into the file system
+dumped. When doing
+this, an image is generated used as backing store while the snapshot
+persists. As this may be too large for the =/tmp= file system, you can
+specify a block size and backing store size in the  [[https://netbsd.gw.com/cgi-bin/man-cgi?fssconfig][=fssconfig(8)=]] call.
+This way, I'm giving a smaller size and then mount the ~fss~
+device read-only so that the backing store doesn't overflow.
 
 * Restoring
 
-All this is done to be able to walk the opposite way and restore a
-damaged system. So, when in case of emergency, use [[https://netbsd.gw.com/cgi-bin/man-cgi?restore][restore(8)]] to apply
-your backups. It can do full or
-partial restores and also has an interactive mode.
+All this work is done to be able to walk the opposite way and restore a
+damaged system in case of an emergency. So lets now have a look on [[https://netbsd.gw.com/cgi-bin/man-cgi?restore][=restore(8)=]].
+It can do full or partial restores and also has an interactive mode.
 
 #+BEGIN_SRC shell
 restore -t -f dump_file
 #+END_SRC
-This doesn't modify anything, but only outputs the contents of the
+This doesn't modify anything, but just outputs the contents of the
 backup. This is not only the file and directory names, but also the
 dump date, level and in case of an incremental backup, the previous
 level.
 
 When doing a full restore into a fresh file system, prepare it using
-~newfs~ before. Afterwards, ~mount~ and ~cd~ into the new file system,
+ [[https://netbsd.gw.com/cgi-bin/man-cgi?newfs][=newfs(8)=]] before. Afterwards,  [[https://netbsd.gw.com/cgi-bin/man-cgi?mount][=mount(8)=]] and ~cd~ into the new file system,
 as the restored files go into the current directory.
 #+BEGIN_SRC shell
 restore -rf dump_file
 #+END_SRC
-This rebuilds the file system. When the dump is done onto a set of
-tapes (or other media) or when afterwards incremental dumps should be
-applied, ~restore~ needs to pass information between the different runs. So it
+This rebuilds the file system. When a set of incremental dumps is to be
+applied,  [[https://netbsd.gw.com/cgi-bin/man-cgi?restore][=restore(8)=]] needs to pass information between the different runs. So it
 creates a =restoresymtable= file in the root directory storing infos about it's
 progress. Consequently, this file should be left
 until the complete restore is finished.
@@ -184,7 +196,10 @@ restore -if dump_file
 This allows you to interactively look into a dump and select single
 files or directories to be restored. =?= shows the commands available here.
 Often, when you just want to get back
-some older versions of a file, this is the most useful tool.
+some older versions of a file, this is the most useful tool. However,
+when implementing partial incremental backups as shown above, you only
+have backed up versions of the last seven days and of the initial
+dump. So if you need more, respect that when defining your strategy.
 
 #+BEGIN_SRC shell
 restore -xf dump_file
@@ -200,25 +215,25 @@ does a full restore, but can be used on a populated file system. It
 unlinks and therefore replaces files by the versions from the backup.
 So it can be used to try and repair a file system.
 By the way, when applying an incremental backup after a full restore,
-the files to be replaced by the increment are also unlinked before, so
-this also works as expected without any need to specify the =-u= argument.
+the files to be replaced by the increment are automatically unlinked before, so
+this also works as expected without any need to specify the ~-u~ argument.
 
-When restoring a backup done with the strategy skeched out above,
+When restoring a backup done with the strategy sketched out above,
 start with the (latest) level 0 dump, then work through all newer
 dumps leaving out each one where a newer dump with lower level exists.
 The dates and other infos about each dump file can be extracted from
-output of =restore -t=, or interactively by using the =what= command
-in =restore -i=. For example, when dumps were generated with order =0
+output of ~restore -t~, or interactively by using the =what= command
+in ~restore -i~. For example, when dumps were generated with order =0
 3 2 4=, you'll find that for level 3 dump a newer one with lower level
 exists (number 2), so 3 is left out. The only one with lower level
 than 2 is the older 0, so you choose 2. 4 has also only lower ones
 with older dates, so 4 is also choosen, giving the restore order =0 2
 4=.
 
-* Some notes on using dump and restore
+* Some more notes
 
 You can exclude files or directories from the backup by setting the
-=nodump= flag. =ls -o= shows the current flags. Set =nonodump= to
+=nodump= flag. ~ls -o~ shows the current flags. Set =nonodump= to
 remove a flag.
 #+BEGIN_SRC shell
 chflags nodump file-or-dir
@@ -234,24 +249,26 @@ dump 0a -h 0 -f /tmp/backup.1 /home
 #+END_SRC
 
 Otherwise, you can also specify a list of paths, when only a subset of
-a file system should be backed up. When doing this, =dump= is always
+a file system should be backed up. When doing this,  [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]] is always
 doing a full level 0 backup of the given directories.
 
 When a long dump is running, you can send a =SIGSTATUS= to the dump
 process to make it report it's progress. For example, when the status
-control character is mapped to =CTRL-T= via [[https://netbsd.gw.com/cgi-bin/man-cgi?stty][stty(1)]], a dump process running in the
+control character is mapped to =CTRL-T= via [[https://netbsd.gw.com/cgi-bin/man-cgi?stty][=stty(1)=]], a dump process running in the
 foreground reports the progress when pressing that (restore also).
 
 If you are manually doing backups, besides looking at =/etc/dumpdates=
 you can use ~dump -w~ to show the file systems currently to be dumped.
 Otherwise, you can always use ~dump -W~ to show the last dump times and
-levels of all dumped file systems.
+levels of all dumped file systems. [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]] is also integrated into the
+housekeeping concepts of NetBSD insofar, as this output is included into the
+[[https://netbsd.gw.com/cgi-bin/man-cgi?daily][=daily(5)=]] maintainance tool.
 
 The dump frequency in days, used to determine which file systems need
 to be dumped next, can be defined in =/etc/fstab='s fifth entry.
 But when using snapshots, the devices actually dumped are not listed
 in fstab, so this mechanism isn't working. Automating the backup in a
-crontab and defining own dump entries with adjacent frequencies can
+crontab and defining dump entries with adjacent frequencies can
 mitigate this.
 
 * An example session
@@ -262,7 +279,7 @@ handling a file system snapshot and doing a full dump.
 #+BEGIN_SRC shell
 mount_afp afp://:passwd@host/path /mnt/backup
 fssconfig -cv fss0 / /snapshot
-mount -r /dev/fss0 /mnt/dev
+mount /dev/fss0 /mnt/dev
 dump -0ua -h 0 -f /mnt/backup/dumpfile.0 /mnt/dev
 umount /mnt/dev
 fssconfig -u fss0
@@ -278,7 +295,9 @@ restore -if /mnt/backup/var
 
 * Putting the pieces together
 
-Finally, here is my =bin/backup.sh=. When sourced, provides some commands
+Most of this is put together into a bash script, =backup.sh= (see
+below at the end).
+When sourced, it provides some commands
 to support handling snapshots, mounting of the backup device,
 making an incremental backup following a configured strategy and
 accessing/restoring from the backup device. For example, after
@@ -295,12 +314,6 @@ this:
 The script includes an example on how
 to automate daily backups by calling it via crontab, saving the output
 to a log and mailing it to root.
-Take caution as this is not yet so well tested---just use it as a simple example.
-#+INCLUDE: "backup.sh" src shell
-
-..and an example of a backup.conf showing how to dump/restore using
-ssh pipes:
-#+INCLUDE: "backup.conf" src shell
 
 * At the end...
 
@@ -310,9 +323,19 @@ looking at the contents with interactive restore and doing a test recovery, ever
 good. Having set up this kind of backups gives a good feeling---now
 lets make sure continuously this actually is justified..
 
-As a side note, while experimenting with =dump= and =restore=, I found
+As a side note, while experimenting with  [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]] and [[https://netbsd.gw.com/cgi-bin/man-cgi?restore][=restore(8)=]],
+I stumbled upon
 the last dump made on my NeXTStep System some decades ago. And,
-believe it or not, the =restore= command on 2020's NetBSD is still
+believe it or not, the [[https://netbsd.gw.com/cgi-bin/man-cgi?restore][=restore(8)=]] command on 2020's NetBSD is still
 able to read that old dump format. So when I'll find some more time, I
 hope to restore it into a virtualized NeXTStep reincarnation. That
-would be a recovery strategy having been working out really well!
+would be a recovery strategy having been worked out really well!
+
+* Appendix: the backup script
+
+Take caution as this is not yet well enough tested---just use it as a simple example.
+#+INCLUDE: "backup.sh" src shell
+
+..and an example of a backup.conf showing how to dump/restore using
+ssh pipes:
+#+INCLUDE: "backup.conf" src shell

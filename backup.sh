@@ -18,7 +18,7 @@ DUMPMNT=/mnt/bkup
 # unset if you dont want a snapshot
 FSS=fss0
 SRCDEV=/
-SNAPSHOT=/root/snapshot
+SNAPSHOT=/tmp/snapshot
 
 # mountpoint of fs to backup
 SRCMNT=/mnt/dev
@@ -67,8 +67,7 @@ mount_backup() {
 snapshot() {
   if [ "${FSS}-" != "-" ]; then
     case $1 in
-    new) ${TEST} fssconfig -c ${FSS} ${SRCDEV} ${SNAPSHOT}
-         ${TEST} chflags nodump ${SNAPSHOT}
+    new) ${TEST} fssconfig -c ${FSS} ${SRCDEV} ${SNAPSHOT} 512 10485760
          ${TEST} mount -r /dev/${FSS} ${SRCMNT}
          ;;
     rm) ${TEST} umount ${SRCMNT}

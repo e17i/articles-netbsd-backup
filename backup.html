@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-05-12 Di. 17:53 -->
+<!-- 2020-05-14 Do. 20:58 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Backup and Restore on NetBSD</title>
@@ -62,9 +62,9 @@ for the JavaScript code in this tag.
 <div id="content">
 <h1 class="title">Backup and Restore on NetBSD</h1>
 
-<div id="outline-container-org330914f" class="outline-2">
-<h2 id="org330914f">Overview</h2>
-<div class="outline-text-2" id="text-org330914f">
+<div id="outline-container-orgc1d89ea" class="outline-2">
+<h2 id="orgc1d89ea">Overview</h2>
+<div class="outline-text-2" id="text-orgc1d89ea">
 <p>
 Putting together the bits and pieces of a backup and restore concept,
 while not being rocket science, always seems to be a little bit
@@ -77,9 +77,9 @@ Suggestions on how to improve are always welcome.
 </div>
 </div>
 
-<div id="outline-container-org61acf80" class="outline-2">
-<h2 id="org61acf80">Some thoughts about Strategy</h2>
-<div class="outline-text-2" id="text-org61acf80">
+<div id="outline-container-org8d23193" class="outline-2">
+<h2 id="org8d23193">Some thoughts about Strategy</h2>
+<div class="outline-text-2" id="text-org8d23193">
 <p>
 The first thing you probably see when reading about these topics is
 the advice, don't have a backup strategy but a recovery strategy. That
@@ -101,14 +101,14 @@ other extreme might be to only start with one full backup, afterwards always
 backing up only the increments to the previous backup. Then, of course,
 the restore is expensive as you need to apply each single backup from
 first to last in right order to do a full restore. Tools like
-<a href="https://netbsd.gw.com/cgi-bin/man-cgi?rsync">rsync(1)</a> mitigate by merging each increment into the
+<a href="https://netbsd.gw.com/cgi-bin/man-cgi?rsync"><code>rsync(1)</code></a> mitigate by merging each increment into the
 previous backup, managing a copy of the backed up file system. But
 this collides with the requirement of not modifying previous backups.
 </p>
 
 <p>
-As a compromise, the <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump">dump(8)</a> manpage suggests to do the next
-increment only every second time&#x2014;that is, to generate the diff to
+As a compromise, the manpage of the <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> tool suggests to do the next
+increment only every <i>nth</i> time (for example every second time)&#x2014;that is, to generate the diff to
 the same preceeding backup for the following two consecutive backups.
 Besides that, it suggests generating weekly backups incrementing on
 the original full backup. Finally, it suggests to build a new full
@@ -121,11 +121,11 @@ to apply at most five backups to do a full restore.
 </p>
 
 <p>
-<a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump">dump(8)</a> allows to define this using backup levels. Level 0 always is a
+<a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> allows to define this using backup levels. Level 0 always is a
 full backup. Each higher level generates the diff to the last lower
 level's backup contents. So applying the dump levels <code>0 3 2 5 4 7 6</code>
 for the first and <code>1 3 2 5 4 7 6</code> for the three next weeks
-follows the backup plan skeched out above. Of course, you may always
+follows the backup plan sketched out above. Of course, you may always
 fine-tune this to your needs.
 </p>
 
@@ -140,8 +140,8 @@ all software installed before.
 
 <p>
 As I want to be able to go back also after experimental software
-updates, my plan has been to setup a full backup using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump">dump(8)</a> and
-<a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore">restore(8)</a>, using the strategy suggested above. After setting up this plan and
+updates, my plan has been to setup a full backup using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> and
+<a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore"><code>restore(8)</code></a>, using the strategy suggested above. After setting up this plan and
 seeing my incremental backups are much smaller than the full one (and
 even the later weekly increments), I decided to modify the plan
 sketched out above and also do the first monthly backup as level 1,
@@ -152,9 +152,9 @@ practice.
 </div>
 </div>
 
-<div id="outline-container-org5b3fd6a" class="outline-2">
-<h2 id="org5b3fd6a">Accessing a remote backup device</h2>
-<div class="outline-text-2" id="text-org5b3fd6a">
+<div id="outline-container-orgd01dba3" class="outline-2">
+<h2 id="orgd01dba3">Accessing a remote backup device</h2>
+<div class="outline-text-2" id="text-orgd01dba3">
 <p>
 When you don't have a backup tape device, you probably instead should
 have an external backup medium ready. In the easiest case, that device
@@ -164,16 +164,15 @@ device entry.
 
 <p>
 When it is attached to another computer, there are several options.
-The first one would be to use the remote option of <code>dump</code>, which
-indirectly acesses the remote computer using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?ssh">ssh(1)</a> and  <a href="https://netbsd.gw.com/cgi-bin/man-cgi?rmt">rmt(8)</a>, so both must be installed
+The first one would be to use the remote option of <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a>, which
+indirectly acesses the remote computer using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?ssh"><code>ssh(1)</code></a> and <a href="https://netbsd.gw.com/cgi-bin/man-cgi?rmt"><code>rmt(8)</code></a>, so both must be installed
 and accessable there. Then you can set environment variable
-<code>RCMD_CMD</code> to <code>ssh</code> and address your device by option <code>-f
-user@host:file</code>.
+<code>RCMD_CMD</code> to <code>ssh</code> and address your device by option <code>-f user@host:file</code>.
 </p>
 
 <p>
-If <code>rmt</code> is not available, your next option would be to pipe to <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dd">dd(1)</a>
-using <code>ssh</code>.
+If, for example, <a href="https://netbsd.gw.com/cgi-bin/man-cgi?rmt"><code>rmt(8)</code></a> is not available, your next option would be to pipe to <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dd"><code>dd(1)</code></a>
+using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?ssh"><code>ssh(1)</code></a>.
 </p>
 <div class="org-src-container">
 <pre class="src src-shell">dump &lt;options&gt; | ssh -l &lt;user&gt; &lt;host&gt; dd <span style="color: #a0522d;">of</span>=/dev/&lt;dump-device&gt;
@@ -191,15 +190,16 @@ The pipe for the way back to restore then would be like this:
 where <code>/dev/dump-device</code> might also be a path to a plain file. 
 Unfortunately, doing an interactive restore via this sort of piped ssh
 seems to be not such a good idea, especially if the backup file is
-large. Nevertheless, as a last resort this might be an option.
+large. Nevertheless, this might be an option for
+doing non-interactive restores.
 </p>
 
 <p>
 In my case, the backup device is an Apple Time Capsule, being also a
 NetBSD-operated device. My first plan, using the remote backup
-facility of <code>dump</code>, didn't work out because of the missing <code>rmt</code>
+facility of <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a>, didn't work out because of the missing <a href="https://netbsd.gw.com/cgi-bin/man-cgi?rmt"><code>rmt(8)</code></a>
 command on the time capsule. Perhaps some day I'll try to find a
-statically linked <code>rmt</code> binary for NetBSD-6.0/evbarm (or cross-build
+statically linked <a href="https://netbsd.gw.com/cgi-bin/man-cgi?rmt"><code>rmt(8)</code></a> binary for NetBSD-6.0/evbarm (or cross-build
 it myself). For now, I'm resolving to using <code>mount_afp</code>, provided
 by pkgsrc, and mounting the time capsule filesystem to access it in a
 less sophisticated way.
@@ -208,18 +208,22 @@ less sophisticated way.
 <p>
 BTW, when doing so, I had to manually create a link to <code>/dev/fuse0</code>
 (<code>ln -s /dev/putter /dev/fuse0</code>) to make <code>afpfsd</code> work.
+Until now, the automatic mounting of the afp device doesn't seem to
+work reliably, which kind of counteracts my approach a little bit. I had at
+least one case where the <code>afpfsd</code> crashed while dumping. This
+needs some more investigation..
 </p>
 </div>
 </div>
 
-<div id="outline-container-org1d2fd9f" class="outline-2">
-<h2 id="org1d2fd9f">Snapshots</h2>
-<div class="outline-text-2" id="text-org1d2fd9f">
+<div id="outline-container-org81ec7d8" class="outline-2">
+<h2 id="org81ec7d8">Snapshots</h2>
+<div class="outline-text-2" id="text-org81ec7d8">
 <p>
-One downside of using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump">dump(8)</a> is, it cannot reliably take backups from
+One downside of using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> is that it cannot reliably take backups from
 live file systems. That used to imply the need to go down to single user and
 umount the files systems for each backup. Fortunately, NetBSD has a
-nice support for file system snapshots courtesy of <a href="https://netbsd.gw.com/cgi-bin/man-cgi?fssconfig">fssconfig(8)</a>,
+nice support for file system snapshots courtesy of <a href="https://netbsd.gw.com/cgi-bin/man-cgi?fssconfig"><code>fssconfig(8)</code></a>,
 easing the backup process very much.
 </p>
 
@@ -234,7 +238,7 @@ As root, for example, use
 to snapshot the file system and make the snapshot reachable through
 the <code>/dev/fss0</code> device. The file <code>/root/snapshot</code> is used internally
 to manage the snapshot while the filesystems stays live. You can then
-mount the device read-only and see the unchanged directory, even if
+mount the device and see the unchanged directory, even if
 you change the live filesystem.
 </p>
 
@@ -245,24 +249,35 @@ the snapshot file can also be removed.
 </p>
 
 <p>
-<code>dump</code> logs the time, device and level of each dump into
+ <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> logs the time, device and level of each dump into
 <code>/etc/dumpdates</code>. Normally, the file system devices are used here. 
 But when using fss snapshots, as the fss device name is written into
 dumpdates instead, you should always consistently use the same different fss
 device numbers when dumping different file systems. For example use <code>fss0</code> for
-root, <code>fss1</code> for <code>usr</code> when they are on different mount points, etc.
+root, <code>fss1</code> for <code>/usr</code> when they are on different mount points, etc.
+</p>
+
+<p>
+As I don't want the directory entry for the snapshot to be included
+into the dump, I put it into <code>/tmp</code>, which resides on a <code>tmpfs</code> in my
+system, so it is guaranteed to not be included into the file system
+dumped. When doing
+this, an image is generated used as backing store while the snapshot
+persists. As this may be too large for the <code>/tmp</code> file system, you can
+specify a block size and backing store size in the  <a href="https://netbsd.gw.com/cgi-bin/man-cgi?fssconfig"><code>fssconfig(8)</code></a> call.
+This way, I'm giving a smaller size and then mount the <code>fss</code>
+device read-only so that the backing store doesn't overflow.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org11cbb9f" class="outline-2">
-<h2 id="org11cbb9f">Restoring</h2>
-<div class="outline-text-2" id="text-org11cbb9f">
+<div id="outline-container-orgbe373c9" class="outline-2">
+<h2 id="orgbe373c9">Restoring</h2>
+<div class="outline-text-2" id="text-orgbe373c9">
 <p>
-All this is done to be able to walk the opposite way and restore a
-damaged system. So, when in case of emergency, use <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore">restore(8)</a> to apply
-your backups. It can do full or
-partial restores and also has an interactive mode.
+All this work is done to be able to walk the opposite way and restore a
+damaged system in case of an emergency. So lets now have a look on <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore"><code>restore(8)</code></a>.
+It can do full or partial restores and also has an interactive mode.
 </p>
 
 <div class="org-src-container">
@@ -270,7 +285,7 @@ partial restores and also has an interactive mode.
 </pre>
 </div>
 <p>
-This doesn't modify anything, but only outputs the contents of the
+This doesn't modify anything, but just outputs the contents of the
 backup. This is not only the file and directory names, but also the
 dump date, level and in case of an incremental backup, the previous
 level.
@@ -278,7 +293,7 @@ level.
 
 <p>
 When doing a full restore into a fresh file system, prepare it using
-<code>newfs</code> before. Afterwards, <code>mount</code> and <code>cd</code> into the new file system,
+ <a href="https://netbsd.gw.com/cgi-bin/man-cgi?newfs"><code>newfs(8)</code></a> before. Afterwards,  <a href="https://netbsd.gw.com/cgi-bin/man-cgi?mount"><code>mount(8)</code></a> and <code>cd</code> into the new file system,
 as the restored files go into the current directory.
 </p>
 <div class="org-src-container">
@@ -286,9 +301,8 @@ as the restored files go into the current directory.
 </pre>
 </div>
 <p>
-This rebuilds the file system. When the dump is done onto a set of
-tapes (or other media) or when afterwards incremental dumps should be
-applied, <code>restore</code> needs to pass information between the different runs. So it
+This rebuilds the file system. When a set of incremental dumps is to be
+applied,  <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore"><code>restore(8)</code></a> needs to pass information between the different runs. So it
 creates a <code>restoresymtable</code> file in the root directory storing infos about it's
 progress. Consequently, this file should be left
 until the complete restore is finished.
@@ -302,7 +316,10 @@ until the complete restore is finished.
 This allows you to interactively look into a dump and select single
 files or directories to be restored. <code>?</code> shows the commands available here.
 Often, when you just want to get back
-some older versions of a file, this is the most useful tool.
+some older versions of a file, this is the most useful tool. However,
+when implementing partial incremental backups as shown above, you only
+have backed up versions of the last seven days and of the initial
+dump. So if you need more, respect that when defining your strategy.
 </p>
 
 <div class="org-src-container">
@@ -326,12 +343,12 @@ does a full restore, but can be used on a populated file system. It
 unlinks and therefore replaces files by the versions from the backup.
 So it can be used to try and repair a file system.
 By the way, when applying an incremental backup after a full restore,
-the files to be replaced by the increment are also unlinked before, so
+the files to be replaced by the increment are automatically unlinked before, so
 this also works as expected without any need to specify the <code>-u</code> argument.
 </p>
 
 <p>
-When restoring a backup done with the strategy skeched out above,
+When restoring a backup done with the strategy sketched out above,
 start with the (latest) level 0 dump, then work through all newer
 dumps leaving out each one where a newer dump with lower level exists.
 The dates and other infos about each dump file can be extracted from
@@ -346,9 +363,9 @@ with older dates, so 4 is also choosen, giving the restore order <code>0 2
 </div>
 </div>
 
-<div id="outline-container-org81241da" class="outline-2">
-<h2 id="org81241da">Some notes on using dump and restore</h2>
-<div class="outline-text-2" id="text-org81241da">
+<div id="outline-container-orgb98f017" class="outline-2">
+<h2 id="orgb98f017">Some more notes</h2>
+<div class="outline-text-2" id="text-orgb98f017">
 <p>
 You can exclude files or directories from the backup by setting the
 <code>nodump</code> flag. <code>ls -o</code> shows the current flags. Set <code>nonodump</code> to
@@ -373,14 +390,14 @@ option. I'm setting this to 0 to always have the flags honored.
 
 <p>
 Otherwise, you can also specify a list of paths, when only a subset of
-a file system should be backed up. When doing this, <code>dump</code> is always
+a file system should be backed up. When doing this,  <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> is always
 doing a full level 0 backup of the given directories.
 </p>
 
 <p>
 When a long dump is running, you can send a <code>SIGSTATUS</code> to the dump
 process to make it report it's progress. For example, when the status
-control character is mapped to <code>CTRL-T</code> via <a href="https://netbsd.gw.com/cgi-bin/man-cgi?stty">stty(1)</a>, a dump process running in the
+control character is mapped to <code>CTRL-T</code> via <a href="https://netbsd.gw.com/cgi-bin/man-cgi?stty"><code>stty(1)</code></a>, a dump process running in the
 foreground reports the progress when pressing that (restore also).
 </p>
 
@@ -388,7 +405,9 @@ foreground reports the progress when pressing that (restore also).
 If you are manually doing backups, besides looking at <code>/etc/dumpdates</code>
 you can use <code>dump -w</code> to show the file systems currently to be dumped.
 Otherwise, you can always use <code>dump -W</code> to show the last dump times and
-levels of all dumped file systems.
+levels of all dumped file systems. <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> is also integrated into the
+housekeeping concepts of NetBSD insofar, as this output is included into the
+<a href="https://netbsd.gw.com/cgi-bin/man-cgi?daily"><code>daily(5)</code></a> maintainance tool.
 </p>
 
 <p>
@@ -396,15 +415,15 @@ The dump frequency in days, used to determine which file systems need
 to be dumped next, can be defined in <code>/etc/fstab</code>'s fifth entry.
 But when using snapshots, the devices actually dumped are not listed
 in fstab, so this mechanism isn't working. Automating the backup in a
-crontab and defining own dump entries with adjacent frequencies can
+crontab and defining dump entries with adjacent frequencies can
 mitigate this.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgb43dafd" class="outline-2">
-<h2 id="orgb43dafd">An example session</h2>
-<div class="outline-text-2" id="text-orgb43dafd">
+<div id="outline-container-orgcc393ee" class="outline-2">
+<h2 id="orgcc393ee">An example session</h2>
+<div class="outline-text-2" id="text-orgcc393ee">
 <p>
 Here is an example of mounting/unmounting an afp backup device,
 handling a file system snapshot and doing a full dump.
@@ -413,7 +432,7 @@ handling a file system snapshot and doing a full dump.
 <div class="org-src-container">
 <pre class="src src-shell">mount_afp afp://:passwd@host/path /mnt/backup
 fssconfig -cv fss0 / /snapshot
-mount -r /dev/fss0 /mnt/dev
+mount /dev/fss0 /mnt/dev
 dump -0ua -h 0 -f /mnt/backup/dumpfile.0 /mnt/dev
 umount /mnt/dev
 fssconfig -u fss0
@@ -433,11 +452,13 @@ command perhaps with an interactive restore:
 </div>
 </div>
 
-<div id="outline-container-orgd918245" class="outline-2">
-<h2 id="orgd918245">Putting the pieces together</h2>
-<div class="outline-text-2" id="text-orgd918245">
+<div id="outline-container-org492ff6c" class="outline-2">
+<h2 id="org492ff6c">Putting the pieces together</h2>
+<div class="outline-text-2" id="text-org492ff6c">
 <p>
-Finally, here is my <code>bin/backup.sh</code>. When sourced, provides some commands
+Most of this is put together into a bash script, <code>backup.sh</code> (see
+below at the end).
+When sourced, it provides some commands
 to support handling snapshots, mounting of the backup device,
 making an incremental backup following a configured strategy and
 accessing/restoring from the backup device. For example, after
@@ -460,7 +481,38 @@ this:
 The script includes an example on how
 to automate daily backups by calling it via crontab, saving the output
 to a log and mailing it to root.
-Take caution as this is not yet so well tested&#x2014;just use it as a simple example.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org871244e" class="outline-2">
+<h2 id="org871244e">At the end&#x2026;</h2>
+<div class="outline-text-2" id="text-org871244e">
+<p>
+After a few days of automatic backups, this setup seems to work quite
+reliably. The files are rotated and replaced in the expected order,
+looking at the contents with interactive restore and doing a test recovery, everything looks
+good. Having set up this kind of backups gives a good feeling&#x2014;now
+lets make sure continuously this actually is justified..
+</p>
+
+<p>
+As a side note, while experimenting with  <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> and <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore"><code>restore(8)</code></a>,
+I stumbled upon
+the last dump made on my NeXTStep System some decades ago. And,
+believe it or not, the <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore"><code>restore(8)</code></a> command on 2020's NetBSD is still
+able to read that old dump format. So when I'll find some more time, I
+hope to restore it into a virtualized NeXTStep reincarnation. That
+would be a recovery strategy having been worked out really well!
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgf8b08d7" class="outline-2">
+<h2 id="orgf8b08d7">Appendix: the backup script</h2>
+<div class="outline-text-2" id="text-orgf8b08d7">
+<p>
+Take caution as this is not yet well enough tested&#x2014;just use it as a simple example.
 </p>
 <div class="org-src-container">
 <pre class="src src-shell"><span style="color: #b22222;">#</span><span style="color: #b22222;">!/usr/pkg/bin/</span><span style="color: #a020f0;">bash</span>
@@ -483,7 +535,7 @@ Take caution as this is not yet so well tested&#x2014;just use it as a simple ex
 <span style="color: #b22222;"># </span><span style="color: #b22222;">unset if you dont want a snapshot</span>
 <span style="color: #a0522d;">FSS</span>=fss0
 <span style="color: #a0522d;">SRCDEV</span>=/
-<span style="color: #a0522d;">SNAPSHOT</span>=/root/snapshot
+<span style="color: #a0522d;">SNAPSHOT</span>=/tmp/snapshot
 
 <span style="color: #b22222;"># </span><span style="color: #b22222;">mountpoint of fs to backup</span>
 <span style="color: #a0522d;">SRCMNT</span>=/mnt/dev
@@ -532,8 +584,7 @@ Take caution as this is not yet so well tested&#x2014;just use it as a simple ex
 <span style="color: #0000ff;">snapshot</span>() {
   <span style="color: #a020f0;">if</span> [ <span style="color: #8b2252;">"${FSS}-"</span> != <span style="color: #8b2252;">"-"</span> ]; <span style="color: #a020f0;">then</span>
     <span style="color: #a020f0;">case</span> $<span style="color: #a0522d;">1</span><span style="color: #a020f0;"> in</span>
-    new) ${<span style="color: #a0522d;">TEST</span>} fssconfig -c ${<span style="color: #a0522d;">FSS</span>} ${<span style="color: #a0522d;">SRCDEV</span>} ${<span style="color: #a0522d;">SNAPSHOT</span>}
-         ${<span style="color: #a0522d;">TEST</span>} chflags nodump ${<span style="color: #a0522d;">SNAPSHOT</span>}
+    new) ${<span style="color: #a0522d;">TEST</span>} fssconfig -c ${<span style="color: #a0522d;">FSS</span>} ${<span style="color: #a0522d;">SRCDEV</span>} ${<span style="color: #a0522d;">SNAPSHOT</span>} 512 10485760
          ${<span style="color: #a0522d;">TEST</span>} mount -r /dev/${<span style="color: #a0522d;">FSS</span>} ${<span style="color: #a0522d;">SRCMNT</span>}
          ;;
     rm) ${<span style="color: #a0522d;">TEST</span>} umount ${<span style="color: #a0522d;">SRCMNT</span>}
@@ -636,7 +687,7 @@ ssh pipes:
 <span style="color: #b22222;"># </span><span style="color: #b22222;">unset if you dont want a snapshot</span>
 <span style="color: #a0522d;">FSS</span>=fss0
 <span style="color: #a0522d;">SRCDEV</span>=/
-<span style="color: #a0522d;">SNAPSHOT</span>=/root/snapshot
+<span style="color: #a0522d;">SNAPSHOT</span>=/tmp/snapshot
 
 <span style="color: #b22222;"># </span><span style="color: #b22222;">mountpoint of fs to backup</span>
 <span style="color: #a0522d;">SRCMNT</span>=/mnt/dev
@@ -658,28 +709,6 @@ ssh pipes:
 <span style="color: #b22222;">#</span><span style="color: #b22222;">}</span>
 </pre>
 </div>
-</div>
-</div>
-
-<div id="outline-container-org7b67273" class="outline-2">
-<h2 id="org7b67273">At the end&#x2026;</h2>
-<div class="outline-text-2" id="text-org7b67273">
-<p>
-After a few days of automatic backups, this setup seems to work quite
-reliably. The files are rotated and replaced in the expected order,
-looking at the contents with interactive restore and doing a test recovery, everything looks
-good. Having set up this kind of backups gives a good feeling&#x2014;now
-lets make sure continuously this actually is justified..
-</p>
-
-<p>
-As a side note, while experimenting with <code>dump</code> and <code>restore</code>, I found
-the last dump made on my NeXTStep System some decades ago. And,
-believe it or not, the <code>restore</code> command on 2020's NetBSD is still
-able to read that old dump format. So when I'll find some more time, I
-hope to restore it into a virtualized NeXTStep reincarnation. That
-would be a recovery strategy having been working out really well!
-</p>
 </div>
 </div>
 </div>
