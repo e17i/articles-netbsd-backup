@@ -3,8 +3,8 @@
 # emacs org-mode with <a href="https://jessekelly881-rethink.surge.sh/">Rethink</a></p>"));
 # org-html-postamble: t -*-
 #
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="chrome/rethink.css" />
-#+HTML_HEAD_EXTRA: <img src="image1.jpg"/><div style="padding:2vh"><a style="font-weight:900; text-decoration:none" href="/">Home</a></div>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="/chrome/rethink.css" />
+#+HTML_HEAD_EXTRA: <img src="/chrome/image1.jpg"/><div style="padding:2vh"><a style="font-weight:900; text-decoration:none" href="/">Home</a></div>
 #+OPTIONS: toc:nil num:nil html-style:nil
 # #+INFOJS_OPT: view:showall toc:nil path:chrome/org-info.js
 #+AUTHOR: Jörg Kollmann
@@ -70,6 +70,12 @@ directories from backup. This doesn't guarantee you get to the same
 state as before, as you probably haven't tagged the exact versions of
 all software installed before.
 
+While there are many third party solutions out there, my plan is to
+use the on-board capabilities for backup. This way, the restore tools are
+in reach without additional installation steps. For instance,
+the mini root ram disk of NetBSD's installation kernel at least contains the
+[[https://netbsd.gw.com/cgi-bin/man-cgi?restore][=restore(8)=]] tool, mentioned below, on board.
+
 As I want to be able to go back also after experimental software
 updates, my plan has been to setup a full backup using [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]] and
 [[https://netbsd.gw.com/cgi-bin/man-cgi?restore][=restore(8)=]], using the strategy suggested above. After setting up this plan and
@@ -93,7 +99,8 @@ indirectly acesses the remote computer using [[https://netbsd.gw.com/cgi-bin/man
 and accessable there. Then you can set environment variable
 =RCMD_CMD= to =ssh= and address your device by option =-f user@host:file=.
 
-If, for example, [[https://netbsd.gw.com/cgi-bin/man-cgi?rmt][=rmt(8)=]] is not available, your next option would be to pipe to [[https://netbsd.gw.com/cgi-bin/man-cgi?dd][=dd(1)=]]
+If, for example, [[https://netbsd.gw.com/cgi-bin/man-cgi?rmt][=rmt(8)=]] is not available, your next option suggested
+by many tutorials would be to pipe to [[https://netbsd.gw.com/cgi-bin/man-cgi?dd][=dd(1)=]]
 using [[https://netbsd.gw.com/cgi-bin/man-cgi?ssh][=ssh(1)=]].
 #+BEGIN_SRC shell
 dump <options> | ssh -l <user> <host> dd of=/dev/<dump-device>
@@ -109,6 +116,9 @@ seems to be not such a good idea, especially if the backup file is
 large. Nevertheless, this might be an option for
 doing non-interactive restores.
 
+But if you can  [[https://netbsd.gw.com/cgi-bin/man-cgi?ssh][=ssh(1)=]] into a remote box, the easiest way to get it
+within reach would be to just  mount it using  [[https://netbsd.gw.com/cgi-bin/man-cgi?mount_psshfs][=mount_psshfs(8)=]].
+
 In my case, the backup device is an Apple Time Capsule, being also a
 NetBSD-operated device. My first plan, using the remote backup
 facility of [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]], didn't work out because of the missing [[https://netbsd.gw.com/cgi-bin/man-cgi?rmt][=rmt(8)=]]
@@ -122,8 +132,18 @@ BTW, when doing so, I had to manually create a link to =/dev/fuse0=
 (~ln -s /dev/putter /dev/fuse0~) to make =afpfsd= work.
 Until now, the automatic mounting of the afp device doesn't seem to
 work reliably, which kind of counteracts my approach a little bit. I had at
-least one case where the ~afpfsd~ crashed while dumping. This
-needs some more investigation..
+least one case where the ~afpfsd~ crashed while dumping. 
+
+The second (and more severe) problem with this approach is not being
+able to restore from scratch in case of a complete failure. As mentioned, I'd like
+to be able to restore from the NetBSD installation mini root
+filesystem, which doesn't contain =mount_afp=. Network tools available there
+include =rcmd= (allowing simple, unsecured remote access via =restore=,
+=rexec= and =rmt=), =ftp= or =mount_nfs=. For all of them, the
+server-side components are missing on the time capsule. So, in case of
+a complete restore, my choice will probably be to =mount_afp= the
+backup device onto another system, re-export it from there via nfs and
+this way, finally make it reachable for the NetBSD installation mini root.
 
 * Snapshots
 
@@ -247,6 +267,7 @@ option. I'm setting this to 0 to always have the flags honored.
 #+BEGIN_SRC shell
 dump 0a -h 0 -f /tmp/backup.1 /home
 #+END_SRC
+For example, I'm using this to exclude =/usr/pkgsrc= from the backup.
 
 Otherwise, you can also specify a list of paths, when only a subset of
 a file system should be backed up. When doing this,  [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]] is always
@@ -320,8 +341,11 @@ to a log and mailing it to root.
 After a few days of automatic backups, this setup seems to work quite
 reliably. The files are rotated and replaced in the expected order,
 looking at the contents with interactive restore and doing a test recovery, everything looks
-good. Having set up this kind of backups gives a good feeling---now
+good. Having set up this kind of backups gives some confidence---now
 lets make sure continuously this actually is justified..
+
+Other, more sophisticated means of data security include usage of
+zfs or raids, which one day may be topic of further explorations..
 
 As a side note, while experimenting with  [[https://netbsd.gw.com/cgi-bin/man-cgi?dump][=dump(8)=]] and [[https://netbsd.gw.com/cgi-bin/man-cgi?restore][=restore(8)=]],
 I stumbled upon

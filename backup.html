@@ -3,14 +3,14 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-05-14 Do. 20:58 -->
+<!-- 2020-05-19 Di. 13:36 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Backup and Restore on NetBSD</title>
 <meta name="generator" content="Org mode" />
 <meta name="author" content="Jörg Kollmann" />
-<link rel="stylesheet" type="text/css" href="chrome/rethink.css" />
-<img src="image1.jpg"/><div style="padding:2vh"><a style="font-weight:900; text-decoration:none" href="/">Home</a></div>
+<link rel="stylesheet" type="text/css" href="/chrome/rethink.css" />
+<img src="/chrome/image1.jpg"/><div style="padding:2vh"><a style="font-weight:900; text-decoration:none" href="/">Home</a></div>
 <script type="text/javascript">
 /*
 @licstart  The following is the entire license notice for the
@@ -62,9 +62,9 @@ for the JavaScript code in this tag.
 <div id="content">
 <h1 class="title">Backup and Restore on NetBSD</h1>
 
-<div id="outline-container-orgc1d89ea" class="outline-2">
-<h2 id="orgc1d89ea">Overview</h2>
-<div class="outline-text-2" id="text-orgc1d89ea">
+<div id="outline-container-org1bb715c" class="outline-2">
+<h2 id="org1bb715c">Overview</h2>
+<div class="outline-text-2" id="text-org1bb715c">
 <p>
 Putting together the bits and pieces of a backup and restore concept,
 while not being rocket science, always seems to be a little bit
@@ -77,9 +77,9 @@ Suggestions on how to improve are always welcome.
 </div>
 </div>
 
-<div id="outline-container-org8d23193" class="outline-2">
-<h2 id="org8d23193">Some thoughts about Strategy</h2>
-<div class="outline-text-2" id="text-org8d23193">
+<div id="outline-container-orgd894650" class="outline-2">
+<h2 id="orgd894650">Some thoughts about Strategy</h2>
+<div class="outline-text-2" id="text-orgd894650">
 <p>
 The first thing you probably see when reading about these topics is
 the advice, don't have a backup strategy but a recovery strategy. That
@@ -139,6 +139,14 @@ all software installed before.
 </p>
 
 <p>
+While there are many third party solutions out there, my plan is to
+use the on-board capabilities for backup. This way, the restore tools are
+in reach without additional installation steps. For instance,
+the mini root ram disk of NetBSD's installation kernel at least contains the
+<a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore"><code>restore(8)</code></a> tool, mentioned below, on board.
+</p>
+
+<p>
 As I want to be able to go back also after experimental software
 updates, my plan has been to setup a full backup using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> and
 <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore"><code>restore(8)</code></a>, using the strategy suggested above. After setting up this plan and
@@ -152,9 +160,9 @@ practice.
 </div>
 </div>
 
-<div id="outline-container-orgd01dba3" class="outline-2">
-<h2 id="orgd01dba3">Accessing a remote backup device</h2>
-<div class="outline-text-2" id="text-orgd01dba3">
+<div id="outline-container-org3e6578c" class="outline-2">
+<h2 id="org3e6578c">Accessing a remote backup device</h2>
+<div class="outline-text-2" id="text-org3e6578c">
 <p>
 When you don't have a backup tape device, you probably instead should
 have an external backup medium ready. In the easiest case, that device
@@ -171,7 +179,8 @@ and accessable there. Then you can set environment variable
 </p>
 
 <p>
-If, for example, <a href="https://netbsd.gw.com/cgi-bin/man-cgi?rmt"><code>rmt(8)</code></a> is not available, your next option would be to pipe to <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dd"><code>dd(1)</code></a>
+If, for example, <a href="https://netbsd.gw.com/cgi-bin/man-cgi?rmt"><code>rmt(8)</code></a> is not available, your next option suggested
+by many tutorials would be to pipe to <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dd"><code>dd(1)</code></a>
 using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?ssh"><code>ssh(1)</code></a>.
 </p>
 <div class="org-src-container">
@@ -195,6 +204,11 @@ doing non-interactive restores.
 </p>
 
 <p>
+But if you can  <a href="https://netbsd.gw.com/cgi-bin/man-cgi?ssh"><code>ssh(1)</code></a> into a remote box, the easiest way to get it
+within reach would be to just  mount it using  <a href="https://netbsd.gw.com/cgi-bin/man-cgi?mount_psshfs"><code>mount_psshfs(8)</code></a>.
+</p>
+
+<p>
 In my case, the backup device is an Apple Time Capsule, being also a
 NetBSD-operated device. My first plan, using the remote backup
 facility of <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a>, didn't work out because of the missing <a href="https://netbsd.gw.com/cgi-bin/man-cgi?rmt"><code>rmt(8)</code></a>
@@ -210,15 +224,27 @@ BTW, when doing so, I had to manually create a link to <code>/dev/fuse0</code>
 (<code>ln -s /dev/putter /dev/fuse0</code>) to make <code>afpfsd</code> work.
 Until now, the automatic mounting of the afp device doesn't seem to
 work reliably, which kind of counteracts my approach a little bit. I had at
-least one case where the <code>afpfsd</code> crashed while dumping. This
-needs some more investigation..
+least one case where the <code>afpfsd</code> crashed while dumping. 
+</p>
+
+<p>
+The second (and more severe) problem with this approach is not being
+able to restore from scratch in case of a complete failure. As mentioned, I'd like
+to be able to restore from the NetBSD installation mini root
+filesystem, which doesn't contain <code>mount_afp</code>. Network tools available there
+include <code>rcmd</code> (allowing simple, unsecured remote access via <code>restore</code>,
+<code>rexec</code> and <code>rmt</code>), <code>ftp</code> or <code>mount_nfs</code>. For all of them, the
+server-side components are missing on the time capsule. So, in case of
+a complete restore, my choice will probably be to <code>mount_afp</code> the
+backup device onto another system, re-export it from there via nfs and
+this way, finally make it reachable for the NetBSD installation mini root.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org81ec7d8" class="outline-2">
-<h2 id="org81ec7d8">Snapshots</h2>
-<div class="outline-text-2" id="text-org81ec7d8">
+<div id="outline-container-org4b95b63" class="outline-2">
+<h2 id="org4b95b63">Snapshots</h2>
+<div class="outline-text-2" id="text-org4b95b63">
 <p>
 One downside of using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> is that it cannot reliably take backups from
 live file systems. That used to imply the need to go down to single user and
@@ -271,9 +297,9 @@ device read-only so that the backing store doesn't overflow.
 </div>
 </div>
 
-<div id="outline-container-orgbe373c9" class="outline-2">
-<h2 id="orgbe373c9">Restoring</h2>
-<div class="outline-text-2" id="text-orgbe373c9">
+<div id="outline-container-orga6cd681" class="outline-2">
+<h2 id="orga6cd681">Restoring</h2>
+<div class="outline-text-2" id="text-orga6cd681">
 <p>
 All this work is done to be able to walk the opposite way and restore a
 damaged system in case of an emergency. So lets now have a look on <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore"><code>restore(8)</code></a>.
@@ -363,9 +389,9 @@ with older dates, so 4 is also choosen, giving the restore order <code>0 2
 </div>
 </div>
 
-<div id="outline-container-orgb98f017" class="outline-2">
-<h2 id="orgb98f017">Some more notes</h2>
-<div class="outline-text-2" id="text-orgb98f017">
+<div id="outline-container-orgb68ea7c" class="outline-2">
+<h2 id="orgb68ea7c">Some more notes</h2>
+<div class="outline-text-2" id="text-orgb68ea7c">
 <p>
 You can exclude files or directories from the backup by setting the
 <code>nodump</code> flag. <code>ls -o</code> shows the current flags. Set <code>nonodump</code> to
@@ -387,6 +413,9 @@ option. I'm setting this to 0 to always have the flags honored.
 <pre class="src src-shell">dump 0a -h 0 -f /tmp/backup.1 /home
 </pre>
 </div>
+<p>
+For example, I'm using this to exclude <code>/usr/pkgsrc</code> from the backup.
+</p>
 
 <p>
 Otherwise, you can also specify a list of paths, when only a subset of
@@ -421,9 +450,9 @@ mitigate this.
 </div>
 </div>
 
-<div id="outline-container-orgcc393ee" class="outline-2">
-<h2 id="orgcc393ee">An example session</h2>
-<div class="outline-text-2" id="text-orgcc393ee">
+<div id="outline-container-org2076976" class="outline-2">
+<h2 id="org2076976">An example session</h2>
+<div class="outline-text-2" id="text-org2076976">
 <p>
 Here is an example of mounting/unmounting an afp backup device,
 handling a file system snapshot and doing a full dump.
@@ -452,9 +481,9 @@ command perhaps with an interactive restore:
 </div>
 </div>
 
-<div id="outline-container-org492ff6c" class="outline-2">
-<h2 id="org492ff6c">Putting the pieces together</h2>
-<div class="outline-text-2" id="text-org492ff6c">
+<div id="outline-container-org379bdb0" class="outline-2">
+<h2 id="org379bdb0">Putting the pieces together</h2>
+<div class="outline-text-2" id="text-org379bdb0">
 <p>
 Most of this is put together into a bash script, <code>backup.sh</code> (see
 below at the end).
@@ -485,15 +514,20 @@ to a log and mailing it to root.
 </div>
 </div>
 
-<div id="outline-container-org871244e" class="outline-2">
-<h2 id="org871244e">At the end&#x2026;</h2>
-<div class="outline-text-2" id="text-org871244e">
+<div id="outline-container-org2b29be1" class="outline-2">
+<h2 id="org2b29be1">At the end&#x2026;</h2>
+<div class="outline-text-2" id="text-org2b29be1">
 <p>
 After a few days of automatic backups, this setup seems to work quite
 reliably. The files are rotated and replaced in the expected order,
 looking at the contents with interactive restore and doing a test recovery, everything looks
-good. Having set up this kind of backups gives a good feeling&#x2014;now
+good. Having set up this kind of backups gives some confidence&#x2014;now
 lets make sure continuously this actually is justified..
+</p>
+
+<p>
+Other, more sophisticated means of data security include usage of
+zfs or raids, which one day may be topic of further explorations..
 </p>
 
 <p>
@@ -508,9 +542,9 @@ would be a recovery strategy having been worked out really well!
 </div>
 </div>
 
-<div id="outline-container-orgf8b08d7" class="outline-2">
-<h2 id="orgf8b08d7">Appendix: the backup script</h2>
-<div class="outline-text-2" id="text-orgf8b08d7">
+<div id="outline-container-orgab13b3c" class="outline-2">
+<h2 id="orgab13b3c">Appendix: the backup script</h2>
+<div class="outline-text-2" id="text-orgab13b3c">
 <p>
 Take caution as this is not yet well enough tested&#x2014;just use it as a simple example.
 </p>
