@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-05-19 Di. 13:36 -->
+<!-- 2020-05-26 Di. 14:00 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Backup and Restore on NetBSD</title>
@@ -62,9 +62,9 @@ for the JavaScript code in this tag.
 <div id="content">
 <h1 class="title">Backup and Restore on NetBSD</h1>
 
-<div id="outline-container-org1bb715c" class="outline-2">
-<h2 id="org1bb715c">Overview</h2>
-<div class="outline-text-2" id="text-org1bb715c">
+<div id="outline-container-org6942d93" class="outline-2">
+<h2 id="org6942d93">Overview</h2>
+<div class="outline-text-2" id="text-org6942d93">
 <p>
 Putting together the bits and pieces of a backup and restore concept,
 while not being rocket science, always seems to be a little bit
@@ -77,9 +77,9 @@ Suggestions on how to improve are always welcome.
 </div>
 </div>
 
-<div id="outline-container-orgd894650" class="outline-2">
-<h2 id="orgd894650">Some thoughts about Strategy</h2>
-<div class="outline-text-2" id="text-orgd894650">
+<div id="outline-container-orgd16286b" class="outline-2">
+<h2 id="orgd16286b">Some thoughts about Strategy</h2>
+<div class="outline-text-2" id="text-orgd16286b">
 <p>
 The first thing you probably see when reading about these topics is
 the advice, don't have a backup strategy but a recovery strategy. That
@@ -160,9 +160,9 @@ practice.
 </div>
 </div>
 
-<div id="outline-container-org3e6578c" class="outline-2">
-<h2 id="org3e6578c">Accessing a remote backup device</h2>
-<div class="outline-text-2" id="text-org3e6578c">
+<div id="outline-container-orgf6167d4" class="outline-2">
+<h2 id="orgf6167d4">Accessing a remote backup device</h2>
+<div class="outline-text-2" id="text-orgf6167d4">
 <p>
 When you don't have a backup tape device, you probably instead should
 have an external backup medium ready. In the easiest case, that device
@@ -242,9 +242,9 @@ this way, finally make it reachable for the NetBSD installation mini root.
 </div>
 </div>
 
-<div id="outline-container-org4b95b63" class="outline-2">
-<h2 id="org4b95b63">Snapshots</h2>
-<div class="outline-text-2" id="text-org4b95b63">
+<div id="outline-container-orgb1d3fcd" class="outline-2">
+<h2 id="orgb1d3fcd">Snapshots</h2>
+<div class="outline-text-2" id="text-orgb1d3fcd">
 <p>
 One downside of using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> is that it cannot reliably take backups from
 live file systems. That used to imply the need to go down to single user and
@@ -297,9 +297,9 @@ device read-only so that the backing store doesn't overflow.
 </div>
 </div>
 
-<div id="outline-container-orga6cd681" class="outline-2">
-<h2 id="orga6cd681">Restoring</h2>
-<div class="outline-text-2" id="text-orga6cd681">
+<div id="outline-container-org61a9060" class="outline-2">
+<h2 id="org61a9060">Restoring</h2>
+<div class="outline-text-2" id="text-org61a9060">
 <p>
 All this work is done to be able to walk the opposite way and restore a
 damaged system in case of an emergency. So lets now have a look on <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore"><code>restore(8)</code></a>.
@@ -389,9 +389,9 @@ with older dates, so 4 is also choosen, giving the restore order <code>0 2
 </div>
 </div>
 
-<div id="outline-container-orgb68ea7c" class="outline-2">
-<h2 id="orgb68ea7c">Some more notes</h2>
-<div class="outline-text-2" id="text-orgb68ea7c">
+<div id="outline-container-orge4a26bc" class="outline-2">
+<h2 id="orge4a26bc">Some more notes</h2>
+<div class="outline-text-2" id="text-orge4a26bc">
 <p>
 You can exclude files or directories from the backup by setting the
 <code>nodump</code> flag. <code>ls -o</code> shows the current flags. Set <code>nonodump</code> to
@@ -450,9 +450,9 @@ mitigate this.
 </div>
 </div>
 
-<div id="outline-container-org2076976" class="outline-2">
-<h2 id="org2076976">An example session</h2>
-<div class="outline-text-2" id="text-org2076976">
+<div id="outline-container-org7fc8039" class="outline-2">
+<h2 id="org7fc8039">An example session</h2>
+<div class="outline-text-2" id="text-org7fc8039">
 <p>
 Here is an example of mounting/unmounting an afp backup device,
 handling a file system snapshot and doing a full dump.
@@ -481,9 +481,9 @@ command perhaps with an interactive restore:
 </div>
 </div>
 
-<div id="outline-container-org379bdb0" class="outline-2">
-<h2 id="org379bdb0">Putting the pieces together</h2>
-<div class="outline-text-2" id="text-org379bdb0">
+<div id="outline-container-org33ef820" class="outline-2">
+<h2 id="org33ef820">Putting the pieces together</h2>
+<div class="outline-text-2" id="text-org33ef820">
 <p>
 Most of this is put together into a bash script, <code>backup.sh</code> (see
 below at the end).
@@ -514,9 +514,9 @@ to a log and mailing it to root.
 </div>
 </div>
 
-<div id="outline-container-org2b29be1" class="outline-2">
-<h2 id="org2b29be1">At the end&#x2026;</h2>
-<div class="outline-text-2" id="text-org2b29be1">
+<div id="outline-container-orgec8fd79" class="outline-2">
+<h2 id="orgec8fd79">At the end&#x2026;</h2>
+<div class="outline-text-2" id="text-orgec8fd79">
 <p>
 After a few days of automatic backups, this setup seems to work quite
 reliably. The files are rotated and replaced in the expected order,
@@ -542,11 +542,14 @@ would be a recovery strategy having been worked out really well!
 </div>
 </div>
 
-<div id="outline-container-orgab13b3c" class="outline-2">
-<h2 id="orgab13b3c">Appendix: the backup script</h2>
-<div class="outline-text-2" id="text-orgab13b3c">
+<div id="outline-container-orgc888f75" class="outline-2">
+<h2 id="orgc888f75">Appendix: the backup script</h2>
+<div class="outline-text-2" id="text-orgc888f75">
 <p>
-Take caution as this is not yet well enough tested&#x2014;just use it as a simple example.
+Take caution as this is not yet well enough tested&#x2014;just use it as a
+simple example. For example, make sure that two dumps of different
+file systems don't run at the same time. Otherwise, the first one finishing will
+unmount the backup device, making the second one fail.
 </p>
 <div class="org-src-container">
 <pre class="src src-shell"><span style="color: #b22222;">#</span><span style="color: #b22222;">!/usr/pkg/bin/</span><span style="color: #a020f0;">bash</span>
@@ -556,8 +559,8 @@ Take caution as this is not yet well enough tested&#x2014;just use it as a simpl
 <span style="color: #b22222;"># </span><span style="color: #b22222;">and set it chmod 400 and chflags nodump</span>
 <span style="color: #b22222;"># </span><span style="color: #b22222;">install as root crontab like this:</span>
 <span style="color: #b22222;"># </span><span style="color: #b22222;"># daily backups</span>
-<span style="color: #b22222;"># </span><span style="color: #b22222;">0       1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh &amp;&amp; backup' 2&gt;&amp;1 | tee /var/log/backup.out | sendmail -t</span>
-<span style="color: #b22222;"># </span><span style="color: #b22222;">30      1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh &amp;&amp; backup /root/etc/backup-var.conf' 2&gt;&amp;1 | tee /var/log/backup-var.out | sendmail -t</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">0       1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh &amp;&amp; backup /root/etc/backup-var.conf' 2&gt;&amp;1 | tee /var/log/backup-var.out | sendmail -t</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">30      1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh &amp;&amp; backup' 2&gt;&amp;1 | tee /var/log/backup.out | sendmail -t</span>
 
 <span style="color: #b22222;"># </span><span style="color: #b22222;">uncomment to test backup config</span>
 <span style="color: #b22222;">#</span><span style="color: #b22222;">TEST=echo</span>

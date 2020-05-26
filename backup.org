@@ -357,7 +357,10 @@ would be a recovery strategy having been worked out really well!
 
 * Appendix: the backup script
 
-Take caution as this is not yet well enough tested---just use it as a simple example.
+Take caution as this is not yet well enough tested---just use it as a
+simple example. For example, make sure that two dumps of different
+file systems don't run at the same time. Otherwise, the first one finishing will
+unmount the backup device, making the second one fail.
 #+INCLUDE: "backup.sh" src shell
 
 ..and an example of a backup.conf showing how to dump/restore using

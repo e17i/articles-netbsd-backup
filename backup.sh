@@ -5,8 +5,8 @@
 # and set it chmod 400 and chflags nodump
 # install as root crontab like this:
 # # daily backups
-# 0       1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh && backup' 2>&1 | tee /var/log/backup.out | sendmail -t
-# 30      1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh && backup /root/etc/backup-var.conf' 2>&1 | tee /var/log/backup-var.out | sendmail -t
+# 0       1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh && backup /root/etc/backup-var.conf' 2>&1 | tee /var/log/backup-var.out | sendmail -t
+# 30      1       *       *       *       /usr/pkg/bin/bash -c '. /root/bin/backup.sh && backup' 2>&1 | tee /var/log/backup.out | sendmail -t
 
 # uncomment to test backup config
 #TEST=echo
