@@ -83,8 +83,10 @@ seeing my incremental backups are much smaller than the full one (and
 even the later weekly increments), I decided to modify the plan
 sketched out above and also do the first monthly backup as level 1,
 this way doing full backups only on demand (e.g. after a system
-upgrade). After some time I will re-evaluate how this works in
-practice.
+upgrade). On the other side, when there are large diffs every day, it
+may be more practical to just do a weekly full backup and daily incremental
+backups diffing to the previous day. For example, in times when
+compiling larger parts of pkgsrc, this seems to make sense.
 
 * Accessing a remote backup device
 

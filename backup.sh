@@ -98,15 +98,20 @@ makedump() {
   find_level ${1}
 
   # save prev lev 0 dump as prevmonth
-  if [ ${LEV} -eq 0 ];then
+  if [ ${LEV} -eq 0 ]; then
     test -f ${BACKUPFILE}.prevmonth && rm ${BACKUPFILE}.prevmonth
     test "${BACKUPFILE}-" != "-" && test -f ${BACKUPFILE} && mv ${BACKUPFILE} ${BACKUPFILE}.prevmonth
   fi
 
   # save prev lev 1 dump as prevweek
-  if [ ${LEV} -eq 1 ];then
+  if [ ${LEV} -eq 1 ]; then
     test -f ${BACKUPFILE}.prevweek && rm ${BACKUPFILE}.prevweek
     test "${BACKUPFILE}-" != "-" && test -f ${BACKUPFILE} && mv ${BACKUPFILE} ${BACKUPFILE}.prevweek
+  fi
+
+  # all other levs: rm instead of overwriting
+  if [ ${LEV} -gt 1 ]; then
+    test "${BACKUPFILE}-" != "-" && test -f ${BACKUPFILE} && rm ${BACKUPFILE}
   fi
 
   # and dump

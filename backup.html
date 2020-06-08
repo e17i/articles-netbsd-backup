@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-05-26 Di. 14:00 -->
+<!-- 2020-06-08 Mo. 12:41 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Backup and Restore on NetBSD</title>
@@ -62,9 +62,9 @@ for the JavaScript code in this tag.
 <div id="content">
 <h1 class="title">Backup and Restore on NetBSD</h1>
 
-<div id="outline-container-org6942d93" class="outline-2">
-<h2 id="org6942d93">Overview</h2>
-<div class="outline-text-2" id="text-org6942d93">
+<div id="outline-container-org6470dfc" class="outline-2">
+<h2 id="org6470dfc">Overview</h2>
+<div class="outline-text-2" id="text-org6470dfc">
 <p>
 Putting together the bits and pieces of a backup and restore concept,
 while not being rocket science, always seems to be a little bit
@@ -77,9 +77,9 @@ Suggestions on how to improve are always welcome.
 </div>
 </div>
 
-<div id="outline-container-orgd16286b" class="outline-2">
-<h2 id="orgd16286b">Some thoughts about Strategy</h2>
-<div class="outline-text-2" id="text-orgd16286b">
+<div id="outline-container-orgf7b8a3f" class="outline-2">
+<h2 id="orgf7b8a3f">Some thoughts about Strategy</h2>
+<div class="outline-text-2" id="text-orgf7b8a3f">
 <p>
 The first thing you probably see when reading about these topics is
 the advice, don't have a backup strategy but a recovery strategy. That
@@ -154,15 +154,17 @@ seeing my incremental backups are much smaller than the full one (and
 even the later weekly increments), I decided to modify the plan
 sketched out above and also do the first monthly backup as level 1,
 this way doing full backups only on demand (e.g. after a system
-upgrade). After some time I will re-evaluate how this works in
-practice.
+upgrade). On the other side, when there are large diffs every day, it
+may be more practical to just do a weekly full backup and daily incremental
+backups diffing to the previous day. For example, in times when
+compiling larger parts of pkgsrc, this seems to make sense.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgf6167d4" class="outline-2">
-<h2 id="orgf6167d4">Accessing a remote backup device</h2>
-<div class="outline-text-2" id="text-orgf6167d4">
+<div id="outline-container-org540a1c7" class="outline-2">
+<h2 id="org540a1c7">Accessing a remote backup device</h2>
+<div class="outline-text-2" id="text-org540a1c7">
 <p>
 When you don't have a backup tape device, you probably instead should
 have an external backup medium ready. In the easiest case, that device
@@ -242,9 +244,9 @@ this way, finally make it reachable for the NetBSD installation mini root.
 </div>
 </div>
 
-<div id="outline-container-orgb1d3fcd" class="outline-2">
-<h2 id="orgb1d3fcd">Snapshots</h2>
-<div class="outline-text-2" id="text-orgb1d3fcd">
+<div id="outline-container-org686d1ac" class="outline-2">
+<h2 id="org686d1ac">Snapshots</h2>
+<div class="outline-text-2" id="text-org686d1ac">
 <p>
 One downside of using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> is that it cannot reliably take backups from
 live file systems. That used to imply the need to go down to single user and
@@ -297,9 +299,9 @@ device read-only so that the backing store doesn't overflow.
 </div>
 </div>
 
-<div id="outline-container-org61a9060" class="outline-2">
-<h2 id="org61a9060">Restoring</h2>
-<div class="outline-text-2" id="text-org61a9060">
+<div id="outline-container-org3df230b" class="outline-2">
+<h2 id="org3df230b">Restoring</h2>
+<div class="outline-text-2" id="text-org3df230b">
 <p>
 All this work is done to be able to walk the opposite way and restore a
 damaged system in case of an emergency. So lets now have a look on <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore"><code>restore(8)</code></a>.
@@ -389,9 +391,9 @@ with older dates, so 4 is also choosen, giving the restore order <code>0 2
 </div>
 </div>
 
-<div id="outline-container-orge4a26bc" class="outline-2">
-<h2 id="orge4a26bc">Some more notes</h2>
-<div class="outline-text-2" id="text-orge4a26bc">
+<div id="outline-container-org33e5d8f" class="outline-2">
+<h2 id="org33e5d8f">Some more notes</h2>
+<div class="outline-text-2" id="text-org33e5d8f">
 <p>
 You can exclude files or directories from the backup by setting the
 <code>nodump</code> flag. <code>ls -o</code> shows the current flags. Set <code>nonodump</code> to
@@ -450,9 +452,9 @@ mitigate this.
 </div>
 </div>
 
-<div id="outline-container-org7fc8039" class="outline-2">
-<h2 id="org7fc8039">An example session</h2>
-<div class="outline-text-2" id="text-org7fc8039">
+<div id="outline-container-orgcaa57f3" class="outline-2">
+<h2 id="orgcaa57f3">An example session</h2>
+<div class="outline-text-2" id="text-orgcaa57f3">
 <p>
 Here is an example of mounting/unmounting an afp backup device,
 handling a file system snapshot and doing a full dump.
@@ -481,9 +483,9 @@ command perhaps with an interactive restore:
 </div>
 </div>
 
-<div id="outline-container-org33ef820" class="outline-2">
-<h2 id="org33ef820">Putting the pieces together</h2>
-<div class="outline-text-2" id="text-org33ef820">
+<div id="outline-container-org7ee32b4" class="outline-2">
+<h2 id="org7ee32b4">Putting the pieces together</h2>
+<div class="outline-text-2" id="text-org7ee32b4">
 <p>
 Most of this is put together into a bash script, <code>backup.sh</code> (see
 below at the end).
@@ -514,9 +516,9 @@ to a log and mailing it to root.
 </div>
 </div>
 
-<div id="outline-container-orgec8fd79" class="outline-2">
-<h2 id="orgec8fd79">At the end&#x2026;</h2>
-<div class="outline-text-2" id="text-orgec8fd79">
+<div id="outline-container-org73397bb" class="outline-2">
+<h2 id="org73397bb">At the end&#x2026;</h2>
+<div class="outline-text-2" id="text-org73397bb">
 <p>
 After a few days of automatic backups, this setup seems to work quite
 reliably. The files are rotated and replaced in the expected order,
@@ -542,9 +544,9 @@ would be a recovery strategy having been worked out really well!
 </div>
 </div>
 
-<div id="outline-container-orgc888f75" class="outline-2">
-<h2 id="orgc888f75">Appendix: the backup script</h2>
-<div class="outline-text-2" id="text-orgc888f75">
+<div id="outline-container-orga63a93a" class="outline-2">
+<h2 id="orga63a93a">Appendix: the backup script</h2>
+<div class="outline-text-2" id="text-orga63a93a">
 <p>
 Take caution as this is not yet well enough tested&#x2014;just use it as a
 simple example. For example, make sure that two dumps of different
@@ -652,15 +654,20 @@ unmount the backup device, making the second one fail.
   find_level ${<span style="color: #a0522d;">1</span>}
 
   <span style="color: #b22222;"># </span><span style="color: #b22222;">save prev lev 0 dump as prevmonth</span>
-  <span style="color: #a020f0;">if</span> [ ${<span style="color: #a0522d;">LEV</span>} -eq 0 ];<span style="color: #a020f0;">then</span>
+  <span style="color: #a020f0;">if</span> [ ${<span style="color: #a0522d;">LEV</span>} -eq 0 ]; <span style="color: #a020f0;">then</span>
     <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevmonth &amp;&amp; rm ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevmonth
     <span style="color: #483d8b;">test</span> <span style="color: #8b2252;">"${BACKUPFILE}-"</span> != <span style="color: #8b2252;">"-"</span> &amp;&amp; <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">BACKUPFILE</span>} &amp;&amp; mv ${<span style="color: #a0522d;">BACKUPFILE</span>} ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevmonth
   <span style="color: #a020f0;">fi</span>
 
   <span style="color: #b22222;"># </span><span style="color: #b22222;">save prev lev 1 dump as prevweek</span>
-  <span style="color: #a020f0;">if</span> [ ${<span style="color: #a0522d;">LEV</span>} -eq 1 ];<span style="color: #a020f0;">then</span>
+  <span style="color: #a020f0;">if</span> [ ${<span style="color: #a0522d;">LEV</span>} -eq 1 ]; <span style="color: #a020f0;">then</span>
     <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevweek &amp;&amp; rm ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevweek
     <span style="color: #483d8b;">test</span> <span style="color: #8b2252;">"${BACKUPFILE}-"</span> != <span style="color: #8b2252;">"-"</span> &amp;&amp; <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">BACKUPFILE</span>} &amp;&amp; mv ${<span style="color: #a0522d;">BACKUPFILE</span>} ${<span style="color: #a0522d;">BACKUPFILE</span>}.prevweek
+  <span style="color: #a020f0;">fi</span>
+
+  <span style="color: #b22222;"># </span><span style="color: #b22222;">all other levs: rm instead of overwriting</span>
+  <span style="color: #a020f0;">if</span> [ ${<span style="color: #a0522d;">LEV</span>} -gt 1 ]; <span style="color: #a020f0;">then</span>
+    <span style="color: #483d8b;">test</span> <span style="color: #8b2252;">"${BACKUPFILE}-"</span> != <span style="color: #8b2252;">"-"</span> &amp;&amp; <span style="color: #483d8b;">test</span> -f ${<span style="color: #a0522d;">BACKUPFILE</span>} &amp;&amp; rm ${<span style="color: #a0522d;">BACKUPFILE</span>}
   <span style="color: #a020f0;">fi</span>
 
   <span style="color: #b22222;"># </span><span style="color: #b22222;">and dump</span>
