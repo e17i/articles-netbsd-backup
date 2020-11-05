@@ -4,11 +4,11 @@
 # org-html-postamble: t -*-
 #
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="/chrome/rethink.css" />
-#+HTML_HEAD_EXTRA: <img src="/chrome/image1.jpg"/><div style="padding:2vh"><a style="font-weight:900; text-decoration:none" href="/">Home</a></div>
 #+OPTIONS: toc:nil num:nil html-style:nil
 # #+INFOJS_OPT: view:showall toc:nil path:chrome/org-info.js
 #+AUTHOR: Jörg Kollmann
 #+TITLE: Backup and Restore on NetBSD
+#+DATE: 2020-06-08
 
 * Overview
 
@@ -356,6 +356,8 @@ believe it or not, the [[https://netbsd.gw.com/cgi-bin/man-cgi?restore][=restore
 able to read that old dump format. So when I'll find some more time, I
 hope to restore it into a virtualized NeXTStep reincarnation. That
 would be a recovery strategy having been worked out really well!
+
+Feel free to leave a comment on [[https://www.reddit.com/r/joergsworld/comments/jnn0x0/backup_and_restore_with_netbsd/][Reddit]]
 
 * Appendix: the backup script
 

@@ -3,20 +3,19 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2020-06-08 Mo. 12:41 -->
+<!-- 2020-11-05 Do. 21:01 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Backup and Restore on NetBSD</title>
 <meta name="generator" content="Org mode" />
 <meta name="author" content="Jörg Kollmann" />
 <link rel="stylesheet" type="text/css" href="/chrome/rethink.css" />
-<img src="/chrome/image1.jpg"/><div style="padding:2vh"><a style="font-weight:900; text-decoration:none" href="/">Home</a></div>
 <script type="text/javascript">
 /*
 @licstart  The following is the entire license notice for the
 JavaScript code in this tag.
 
-Copyright (C) 2012-2019 Free Software Foundation, Inc.
+Copyright (C) 2012-2020 Free Software Foundation, Inc.
 
 The JavaScript code in this tag is free software: you can
 redistribute it and/or modify it under the terms of the GNU
@@ -59,12 +58,15 @@ for the JavaScript code in this tag.
 </script>
 </head>
 <body>
+<div id="preamble" class="status">
+<img src="/chrome/image1.jpg"/><div style="padding:2vh"><a style="font-weight:900; text-decoration:none" href="/">Home</a><span style="float: right">last changed: 2020-06-08</span></div>
+</div>
 <div id="content">
 <h1 class="title">Backup and Restore on NetBSD</h1>
 
-<div id="outline-container-org6470dfc" class="outline-2">
-<h2 id="org6470dfc">Overview</h2>
-<div class="outline-text-2" id="text-org6470dfc">
+<div id="outline-container-org105bcf5" class="outline-2">
+<h2 id="org105bcf5">Overview</h2>
+<div class="outline-text-2" id="text-org105bcf5">
 <p>
 Putting together the bits and pieces of a backup and restore concept,
 while not being rocket science, always seems to be a little bit
@@ -77,9 +79,9 @@ Suggestions on how to improve are always welcome.
 </div>
 </div>
 
-<div id="outline-container-orgf7b8a3f" class="outline-2">
-<h2 id="orgf7b8a3f">Some thoughts about Strategy</h2>
-<div class="outline-text-2" id="text-orgf7b8a3f">
+<div id="outline-container-org4c9b680" class="outline-2">
+<h2 id="org4c9b680">Some thoughts about Strategy</h2>
+<div class="outline-text-2" id="text-org4c9b680">
 <p>
 The first thing you probably see when reading about these topics is
 the advice, don't have a backup strategy but a recovery strategy. That
@@ -162,9 +164,9 @@ compiling larger parts of pkgsrc, this seems to make sense.
 </div>
 </div>
 
-<div id="outline-container-org540a1c7" class="outline-2">
-<h2 id="org540a1c7">Accessing a remote backup device</h2>
-<div class="outline-text-2" id="text-org540a1c7">
+<div id="outline-container-org7283d2f" class="outline-2">
+<h2 id="org7283d2f">Accessing a remote backup device</h2>
+<div class="outline-text-2" id="text-org7283d2f">
 <p>
 When you don't have a backup tape device, you probably instead should
 have an external backup medium ready. In the easiest case, that device
@@ -244,9 +246,9 @@ this way, finally make it reachable for the NetBSD installation mini root.
 </div>
 </div>
 
-<div id="outline-container-org686d1ac" class="outline-2">
-<h2 id="org686d1ac">Snapshots</h2>
-<div class="outline-text-2" id="text-org686d1ac">
+<div id="outline-container-orgaf49df6" class="outline-2">
+<h2 id="orgaf49df6">Snapshots</h2>
+<div class="outline-text-2" id="text-orgaf49df6">
 <p>
 One downside of using <a href="https://netbsd.gw.com/cgi-bin/man-cgi?dump"><code>dump(8)</code></a> is that it cannot reliably take backups from
 live file systems. That used to imply the need to go down to single user and
@@ -299,9 +301,9 @@ device read-only so that the backing store doesn't overflow.
 </div>
 </div>
 
-<div id="outline-container-org3df230b" class="outline-2">
-<h2 id="org3df230b">Restoring</h2>
-<div class="outline-text-2" id="text-org3df230b">
+<div id="outline-container-orgfccdcf7" class="outline-2">
+<h2 id="orgfccdcf7">Restoring</h2>
+<div class="outline-text-2" id="text-orgfccdcf7">
 <p>
 All this work is done to be able to walk the opposite way and restore a
 damaged system in case of an emergency. So lets now have a look on <a href="https://netbsd.gw.com/cgi-bin/man-cgi?restore"><code>restore(8)</code></a>.
@@ -391,9 +393,9 @@ with older dates, so 4 is also choosen, giving the restore order <code>0 2
 </div>
 </div>
 
-<div id="outline-container-org33e5d8f" class="outline-2">
-<h2 id="org33e5d8f">Some more notes</h2>
-<div class="outline-text-2" id="text-org33e5d8f">
+<div id="outline-container-org82b07ba" class="outline-2">
+<h2 id="org82b07ba">Some more notes</h2>
+<div class="outline-text-2" id="text-org82b07ba">
 <p>
 You can exclude files or directories from the backup by setting the
 <code>nodump</code> flag. <code>ls -o</code> shows the current flags. Set <code>nonodump</code> to
@@ -452,9 +454,9 @@ mitigate this.
 </div>
 </div>
 
-<div id="outline-container-orgcaa57f3" class="outline-2">
-<h2 id="orgcaa57f3">An example session</h2>
-<div class="outline-text-2" id="text-orgcaa57f3">
+<div id="outline-container-org2e6c191" class="outline-2">
+<h2 id="org2e6c191">An example session</h2>
+<div class="outline-text-2" id="text-org2e6c191">
 <p>
 Here is an example of mounting/unmounting an afp backup device,
 handling a file system snapshot and doing a full dump.
@@ -483,9 +485,9 @@ command perhaps with an interactive restore:
 </div>
 </div>
 
-<div id="outline-container-org7ee32b4" class="outline-2">
-<h2 id="org7ee32b4">Putting the pieces together</h2>
-<div class="outline-text-2" id="text-org7ee32b4">
+<div id="outline-container-org250a97a" class="outline-2">
+<h2 id="org250a97a">Putting the pieces together</h2>
+<div class="outline-text-2" id="text-org250a97a">
 <p>
 Most of this is put together into a bash script, <code>backup.sh</code> (see
 below at the end).
@@ -516,9 +518,9 @@ to a log and mailing it to root.
 </div>
 </div>
 
-<div id="outline-container-org73397bb" class="outline-2">
-<h2 id="org73397bb">At the end&#x2026;</h2>
-<div class="outline-text-2" id="text-org73397bb">
+<div id="outline-container-org77ce691" class="outline-2">
+<h2 id="org77ce691">At the end&#x2026;</h2>
+<div class="outline-text-2" id="text-org77ce691">
 <p>
 After a few days of automatic backups, this setup seems to work quite
 reliably. The files are rotated and replaced in the expected order,
@@ -541,12 +543,16 @@ able to read that old dump format. So when I'll find some more time, I
 hope to restore it into a virtualized NeXTStep reincarnation. That
 would be a recovery strategy having been worked out really well!
 </p>
+
+<p>
+Feel free to leave a comment on <a href="https://www.reddit.com/r/joergsworld/comments/jnn0x0/backup_and_restore_with_netbsd/">Reddit</a>
+</p>
 </div>
 </div>
 
-<div id="outline-container-orga63a93a" class="outline-2">
-<h2 id="orga63a93a">Appendix: the backup script</h2>
-<div class="outline-text-2" id="text-orga63a93a">
+<div id="outline-container-org80971b9" class="outline-2">
+<h2 id="org80971b9">Appendix: the backup script</h2>
+<div class="outline-text-2" id="text-org80971b9">
 <p>
 Take caution as this is not yet well enough tested&#x2014;just use it as a
 simple example. For example, make sure that two dumps of different
